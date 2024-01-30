@@ -24,7 +24,7 @@ namespace InventoryMaster
 
             app.UseAuthorization();
 
-
+            //JanarGay
             app.MapControllers();
 
             app.Run();
