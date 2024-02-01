@@ -42,7 +42,7 @@ namespace InventoryMaster.Controllers
         [HttpPost (Name = "PostItems")]
         public void  Post(Item item)
         {
-            item.Count(ListOfItems, item);
+            item.AddItemsInList(ListOfItems, item);
            
  
         }

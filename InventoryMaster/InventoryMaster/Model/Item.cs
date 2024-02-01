@@ -9,14 +9,14 @@ namespace InventoryMaster.Model
             Id = Guid.NewGuid();
         }
         public Guid Id { get; }
-        public string Name { get; set; }
+        public string? Name { get; set; }
         public int Quantity { get; set; } = 1;
 
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public TypesOFItems Type { get; set; }
         public double Price { get; set; }
 
-        public void Count(List<Item> ListOfItems, Item NewItem)
+        public void AddItemsInList(List<Item> ListOfItems, Item NewItem)
         {
           
             foreach (var item in ListOfItems)
