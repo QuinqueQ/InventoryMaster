@@ -12,33 +12,38 @@ namespace InventoryMaster.Controllers
     [Route("[controller]")]
     public class ItemsController : ControllerBase
     {
-        public static  List<Item> items = new List<Item>
+        public static  List<Item> ListOfItems = new List<Item>
 {
-            new Item { Id = 1, Name = "Cok", Price = 12.3, Type = TypesOFItems.Liquid },
-            new Item { Id = 2, Name = "Chocolate", Price = 23.5, Type = TypesOFItems.Eat },
-            new Item { Id = 3, Name = "Water", Price = 1.5, Type = TypesOFItems.Liquid },
-            new Item { Id = 4, Name = "Bread", Price = 5.0, Type = TypesOFItems.Eat },
-            new Item { Id = 5, Name = "Juice", Price = 3.0, Type = TypesOFItems.Liquid },
-            new Item { Id = 6, Name = "Pizza", Price = 15.5, Type = TypesOFItems.Eat },
-            new Item { Id = 7, Name = "Milk", Price = 2.5, Type = TypesOFItems.Liquid },
-            new Item { Id = 8, Name = "Cheese", Price = 8.0, Type = TypesOFItems.Eat },
-            new Item { Id = 9, Name = "Soda", Price = 1.0, Type = TypesOFItems.Liquid },
-            new Item { Id = 10, Name = "Chips", Price = 4.5, Type = TypesOFItems.Eat },
-            new Item { Id = 11, Name = "Tea", Price = 2.0, Type = TypesOFItems.Liquid },
-            new Item { Id = 12, Name = "Ice Cream", Price = 6.5, Type = TypesOFItems.Eat }
+            new Item { Name = "Cok", Price = 12.3, Type = TypesOFItems.Liquid },
+            new Item { Name = "Chocolate", Price = 23.5, Type = TypesOFItems.Eat },
+            new Item { Name = "Water", Price = 1.5, Type = TypesOFItems.Liquid },
+            new Item { Name = "Bread", Price = 5.0, Type = TypesOFItems.Eat },
+            new Item { Name = "Juice", Price = 3.0, Type = TypesOFItems.Liquid },
+            new Item { Name = "Pizza", Price = 15.5, Type = TypesOFItems.Eat },
+            new Item { Name = "Milk", Price = 2.5, Type = TypesOFItems.Liquid },
+            new Item { Name = "Cheese", Price = 8.0, Type = TypesOFItems.Eat },
+            new Item { Name = "Soda", Price = 1.0, Type = TypesOFItems.Liquid },
+            new Item { Name = "Chips", Price = 4.5, Type = TypesOFItems.Eat },
+            new Item { Name = "Tea", Price = 2.0, Type = TypesOFItems.Liquid },
+            new Item { Name = "Ice Cream", Price = 6.5, Type = TypesOFItems.Eat },
+            new Item { Name = "Ice Tea", Price = 5.5, Type = TypesOFItems.Liquid }
 };
+
+
+        
 
         [HttpGet(Name = "GetItems")]
         public IEnumerable<Item> Get()
         {
 
-            return items;
+            return ListOfItems;
         }
 
         [HttpPost (Name = "PostItems")]
         public void  Post(Item item)
         {
-            items.Add(item);
+            item.Count(ListOfItems, item);
+           
  
         }
 
@@ -52,27 +57,27 @@ namespace InventoryMaster.Controllers
                         try
                         {
 
-                            int Intvalue = int.Parse(Value);
-                            IEnumerable<Item> SortedListItems = items.Where(i => i.Id == Intvalue);
+                            Guid Intvalue = Guid.Parse(Value);
+                            IEnumerable<Item> SortedListItems = ListOfItems.Where(i => i.Id == Intvalue);
                             return SortedListItems;
                         }
-                        catch { return items; }; 
+                        catch { return ListOfItems; }; 
                     }
                 case "Name":
                     {
-                        return items.Where(i => i.Name == Value);
+                        return ListOfItems.Where(i => i.Name == Value);
                     }
                 case "Type":
                     {
                         if (Enum.TryParse(Value, out TypesOFItems itemType))
                         {
-                            IEnumerable<Item> SortedListItems = items.Where(i => i.Type == itemType);
+                            IEnumerable<Item> SortedListItems = ListOfItems.Where(i => i.Type == itemType);
                             return SortedListItems;
                         }
                         else
                         {
                             // Обработка случая, когда Value не может быть преобразовано в TypesOFItems
-                            return items;
+                            return ListOfItems;
                         }
                     }
                 case "Price":
@@ -80,13 +85,13 @@ namespace InventoryMaster.Controllers
                         try
                         {
                             int Intvalue = int.Parse(Value);
-                            IEnumerable<Item> SortedListItems = items.Where(i => i.Price <= Intvalue);
+                            IEnumerable<Item> SortedListItems = ListOfItems.Where(i => i.Price <= Intvalue);
                             return SortedListItems;
                         }
-                        catch { return items; };
+                        catch { return ListOfItems; };
                     }
 
-                default: return items;
+                default: return ListOfItems;
 
 
             }
