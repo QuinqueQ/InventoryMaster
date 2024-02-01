@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc.TagHelpers;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace InventoryMaster.Controllers
 {
@@ -29,7 +30,7 @@ namespace InventoryMaster.Controllers
             new Item { Name = "Ice Tea", Price = 5.5, Type = TypesOFItems.Liquid }
 };
 
-
+        
         
 
         [HttpGet(Name = "GetItems")]
@@ -39,12 +40,13 @@ namespace InventoryMaster.Controllers
             return ListOfItems;
         }
 
-        [HttpPost (Name = "PostItems")]
-        public void  Post(Item item)
+        [HttpPost(Name = "PostItems")]
+        public void Post(string Name, int Quantity, TypesOFItems Type, double Price)
         {
+
+            Item item = new Item(Name, Quantity, Type, Price);
             item.AddItemsInList(ListOfItems, item);
-           
- 
+          
         }
 
         [HttpGet("GetSearch/", Name = "GetItemSearch")]

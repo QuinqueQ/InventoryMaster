@@ -8,12 +8,21 @@ namespace InventoryMaster.Model
         {
             Id = Guid.NewGuid();
         }
+        public Item(string Name, int Quantity, TypesOFItems Type, double Price)
+        {
+            Id = Guid.NewGuid();
+            this.Name = Name;
+            this.Quantity = Quantity;
+            this.Type = Type;
+            this.Price = Price;
+        }
         public Guid Id { get; }
         public string? Name { get; set; }
         public int Quantity { get; set; } = 1;
 
-        [JsonConverter(typeof(JsonStringEnumConverter))]
+       
         public TypesOFItems Type { get; set; }
+        public string TypeName => Type.ToString();
         public double Price { get; set; }
 
         public void AddItemsInList(List<Item> ListOfItems, Item NewItem)
