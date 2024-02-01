@@ -20,7 +20,7 @@ namespace InventoryMaster.Model
         public string? Name { get; set; }
         public int Quantity { get; set; } = 1;
 
-       
+        [JsonConverter(typeof(JsonStringEnumConverter))]
         public TypesOFItems Type { get; set; }
         public string TypeName => Type.ToString();
         public double Price { get; set; }
