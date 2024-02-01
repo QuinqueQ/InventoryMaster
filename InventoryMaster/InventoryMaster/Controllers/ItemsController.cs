@@ -25,18 +25,12 @@ namespace InventoryMaster.Controllers
             new Item { Name = "Soda", Price = 1.0, Type = TypesOFItems.Liquid },
             new Item { Name = "Chips", Price = 4.5, Type = TypesOFItems.Eat },
             new Item { Name = "Tea", Price = 2.0, Type = TypesOFItems.Liquid },
-            new Item { Name = "Ice Cream", Price = 6.5, Type = TypesOFItems.Eat }           
+            new Item { Name = "Ice Cream", Price = 6.5, Type = TypesOFItems.Eat },
+            new Item { Name = "Ice Tea", Price = 5.5, Type = TypesOFItems.Liquid }
 };
 
 
-        public void Count(Item item)
-        {
-            if(ListOfItems.Contains(item))
-            {
-              ListOfItems.FirstOrDefault(i => i.Name == item.Name && i.Price == item.Price && i.Type == item.Type);
-               
-            }
-        }
+        
 
         [HttpGet(Name = "GetItems")]
         public IEnumerable<Item> Get()
@@ -48,7 +42,8 @@ namespace InventoryMaster.Controllers
         [HttpPost (Name = "PostItems")]
         public void  Post(Item item)
         {
-            ListOfItems.Add(item);
+            item.Count(ListOfItems, item);
+           
  
         }
 
