@@ -4,7 +4,7 @@ namespace InventoryMaster.Model
 {
     public class Item
     {
-        public Item()
+        public Item() //конструктор для генерации уникального айдишника для каждого созданного предмета
         {
             Id = Guid.NewGuid();
         }
@@ -18,21 +18,20 @@ namespace InventoryMaster.Model
         }
         public Guid Id { get; }
         public string? Name { get; set; }
-        public int Quantity { get; set; } = 1;
+        public int Quantity { get; set; } = 1; // сразу присваиваю колличество 1, в основном для создания предмета хардкодом(чтобы не создавался предмет с колличеством 0)
 
-        [JsonConverter(typeof(JsonStringEnumConverter))]
-        public TypesOFItems Type { get; set; }
-        public string TypeName => Type.ToString();
+        [JsonConverter(typeof(JsonStringEnumConverter))] // Этот конвертер преобразует значения перечисления енамки в строки при сериализации в JSON и обратно при десериализации из JSON.
+        public TypesOFItems Type { get; set; } //Енамка типов предметов(пользователю нельзя писать название типа предмета от себя, он должен выбирать из существующего или же, сначала он должен будет добавлять в енамку новый тип предметов)
         public double Price { get; set; }
 
-        public void AddItemsInList(List<Item> ListOfItems, Item NewItem)
+        public void AddItemsInList(List<Item> ListOfItems, Item NewItem) // это метод который мы используем для добавления нового предмета в наше "хранилище", он работает с колличеством одинаковых предметов
         {
-          
+            NewItem.Name = NewItem.Name?.Trim();
             foreach (var item in ListOfItems)
             {
                 if (item.Type == NewItem.Type && item.Name == NewItem.Name && item.Price == NewItem.Price)
                 {
-                    item.Quantity = item.Quantity + NewItem.Quantity;
+                    item.Quantity += NewItem.Quantity;
                     return;
                 }
             }
