@@ -5,6 +5,8 @@ using System.Text.Json;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc.TagHelpers;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
+using System.Xml.Linq;
 
 namespace InventoryMaster.Controllers
 {
@@ -12,7 +14,7 @@ namespace InventoryMaster.Controllers
     [Route("[controller]")]
     public class ItemsController : ControllerBase
     {
-        public static  List<Item> ListOfItems = new List<Item>
+        private static  List<Item> ListOfItems = new ()
 {
             new Item { Name = "Cok", Price = 12.3, Type = TypesOFItems.Liquid },
             new Item { Name = "Chocolate", Price = 23.5, Type = TypesOFItems.Eat },
@@ -29,74 +31,91 @@ namespace InventoryMaster.Controllers
             new Item { Name = "Ice Tea", Price = 5.5, Type = TypesOFItems.Liquid }
 };
 
-
+        
         
 
         [HttpGet(Name = "GetItems")]
-        public IEnumerable<Item> Get()
+        public IActionResult Get()//основной гет запрос на все существующие предметы в нашем "хранилище"
         {
-
-            return ListOfItems;
-        }
-
-        [HttpPost (Name = "PostItems")]
-        public void  Post(Item item)
-        {
-            item.Count(ListOfItems, item);
-           
- 
-        }
-
-        [HttpGet("GetSearch/", Name = "GetItemSearch")]
-        public IEnumerable<Item> Search(string TypeOfSearch, string Value)
-        {
-            switch (TypeOfSearch)
+            if (ListOfItems == null || ListOfItems.Count == 0)
             {
-                case "Id":
+                return BadRequest("Ваш инвентарь пуст :(");
+            }
+            return Ok(ListOfItems);
+        }
+
+        [HttpPost(Name = "PostItems")]// пост запрос, для добавления предмета
+        public IActionResult Post(string Name, int Quantity, TypesOFItems Type, double Price)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(Name))
+                    return BadRequest("Невозможно создать предмет без названия!");
+
+                else if (Quantity == 0)
+                    return BadRequest("Невозможно создать предмет с колличество 0!");
+
+                else if (Type == 0)
+                    return BadRequest("Невозможно создать предмет не указав его тип!");
+
+                else
+                {
+                    Item item = new (Name, Quantity, Type, Price);
+                    item.AddItemsInList(ListOfItems, item);
+                    return Ok(item);
+                }
+            }
+            catch { return BadRequest("Вы Указали недопустимые значения"); }
+
+        }
+
+        [HttpGet("Search/", Name = "GetItemSearch")]// поиск предметов по конкретному полю
+        public IActionResult Search(EnumItemFields SearchField, string Value)
+        {
+            if (string.IsNullOrEmpty(Value))
+                return BadRequest("Value не может быть Null"); 
+            switch (SearchField)
+            {
+                case EnumItemFields.Id:
                     {
                         try
                         {
-
-                            Guid Intvalue = Guid.Parse(Value);
-                            IEnumerable<Item> SortedListItems = ListOfItems.Where(i => i.Id == Intvalue);
-                            return SortedListItems;
+                            Guid GuidValue = Guid.Parse(Value);
+                            IEnumerable<Item> SortedListItems = ListOfItems.Where(i => i.Id == GuidValue);
+                            return Ok(SortedListItems);
                         }
-                        catch { return ListOfItems; }; 
+                        catch { return BadRequest("Вы ввели неверное значение!"); } 
                     }
-                case "Name":
-                    {
-                        return ListOfItems.Where(i => i.Name == Value);
-                    }
-                case "Type":
-                    {
-                        if (Enum.TryParse(Value, out TypesOFItems itemType))
-                        {
-                            IEnumerable<Item> SortedListItems = ListOfItems.Where(i => i.Type == itemType);
-                            return SortedListItems;
-                        }
-                        else
-                        {
-                            // Обработка случая, когда Value не может быть преобразовано в TypesOFItems
-                            return ListOfItems;
-                        }
-                    }
-                case "Price":
+                case EnumItemFields.Name:
                     {
                         try
                         {
-                            int Intvalue = int.Parse(Value);
-                            IEnumerable<Item> SortedListItems = ListOfItems.Where(i => i.Price <= Intvalue);
-                            return SortedListItems;
+                            Value = Value.ToLower().Trim();
+                            return Ok(ListOfItems.Where(i => i.Name?.ToLower() == Value));
                         }
-                        catch { return ListOfItems; };
+                        catch { return BadRequest("Вы ввели несуществующее название!"); }
                     }
-
-                default: return ListOfItems;
-
-
+                case EnumItemFields.Type:
+                    {
+                        if (Enum.TryParse(Value, true, out TypesOFItems itemType))
+                        {
+                            IEnumerable<Item> sortedListItems = ListOfItems.Where(i => i.Type == itemType);
+                            return Ok(sortedListItems);
+                        }
+                        else { return BadRequest("Такого типа не существует!"); }
+                    }
+                case EnumItemFields.Price: // он выводит все предметы '<=' числу которое мы введем
+                    {
+                        try
+                        {
+                            double DoubleValue = double.Parse(Value);
+                            IEnumerable<Item> SortedListItems = ListOfItems.Where(i => i.Price <= DoubleValue);
+                            return Ok(SortedListItems);
+                        }
+                        catch { return BadRequest("Вы ввели неверное значение!"); }
+                    }
+                default: return Ok(ListOfItems);
             }
         }
-
-
     }
 }
