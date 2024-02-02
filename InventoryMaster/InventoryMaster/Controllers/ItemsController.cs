@@ -5,6 +5,8 @@ using System.Text.Json;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc.TagHelpers;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
+using System.Xml.Linq;
 
 namespace InventoryMaster.Controllers
 {
@@ -12,86 +14,108 @@ namespace InventoryMaster.Controllers
     [Route("[controller]")]
     public class ItemsController : ControllerBase
     {
-        public static  List<Item> items = new List<Item>
+        private static  List<Item> ListOfItems = new ()
 {
-            new Item { Id = 1, Name = "Cok", Price = 12.3, Type = TypesOFItems.Liquid },
-            new Item { Id = 2, Name = "Chocolate", Price = 23.5, Type = TypesOFItems.Eat },
-            new Item { Id = 3, Name = "Water", Price = 1.5, Type = TypesOFItems.Liquid },
-            new Item { Id = 4, Name = "Bread", Price = 5.0, Type = TypesOFItems.Eat },
-            new Item { Id = 5, Name = "Juice", Price = 3.0, Type = TypesOFItems.Liquid },
-            new Item { Id = 6, Name = "Pizza", Price = 15.5, Type = TypesOFItems.Eat },
-            new Item { Id = 7, Name = "Milk", Price = 2.5, Type = TypesOFItems.Liquid },
-            new Item { Id = 8, Name = "Cheese", Price = 8.0, Type = TypesOFItems.Eat },
-            new Item { Id = 9, Name = "Soda", Price = 1.0, Type = TypesOFItems.Liquid },
-            new Item { Id = 10, Name = "Chips", Price = 4.5, Type = TypesOFItems.Eat },
-            new Item { Id = 11, Name = "Tea", Price = 2.0, Type = TypesOFItems.Liquid },
-            new Item { Id = 12, Name = "Ice Cream", Price = 6.5, Type = TypesOFItems.Eat }
+            new Item { Name = "Cok", Price = 12.3, Type = TypesOFItems.Liquid },
+            new Item { Name = "Chocolate", Price = 23.5, Type = TypesOFItems.Eat },
+            new Item { Name = "Water", Price = 1.5, Type = TypesOFItems.Liquid },
+            new Item { Name = "Bread", Price = 5.0, Type = TypesOFItems.Eat },
+            new Item { Name = "Juice", Price = 3.0, Type = TypesOFItems.Liquid },
+            new Item { Name = "Pizza", Price = 15.5, Type = TypesOFItems.Eat },
+            new Item { Name = "Milk", Price = 2.5, Type = TypesOFItems.Liquid },
+            new Item { Name = "Cheese", Price = 8.0, Type = TypesOFItems.Eat },
+            new Item { Name = "Soda", Price = 1.0, Type = TypesOFItems.Liquid },
+            new Item { Name = "Chips", Price = 4.5, Type = TypesOFItems.Eat },
+            new Item { Name = "Tea", Price = 2.0, Type = TypesOFItems.Liquid },
+            new Item { Name = "Ice Cream", Price = 6.5, Type = TypesOFItems.Eat },
+            new Item { Name = "Ice Tea", Price = 5.5, Type = TypesOFItems.Liquid }
 };
 
+        
+        
+
         [HttpGet(Name = "GetItems")]
-        public IEnumerable<Item> Get()
+        public IActionResult Get()//основной гет запрос на все существующие предметы в нашем "хранилище"
         {
-
-            return items;
-        }
-
-        [HttpPost (Name = "PostItems")]
-        public void  Post(Item item)
-        {
-            items.Add(item);
- 
-        }
-
-        [HttpGet("GetSearch/", Name = "GetItemSearch")]
-        public IEnumerable<Item> Search(string TypeOfSearch, string Value)
-        {
-            switch (TypeOfSearch)
+            if (ListOfItems == null || ListOfItems.Count == 0)
             {
-                case "Id":
+                return BadRequest("Ваш инвентарь пуст :(");
+            }
+            return Ok(ListOfItems);
+        }
+
+        [HttpPost(Name = "PostItems")]// пост запрос, для добавления предмета
+        public IActionResult Post(string Name, int Quantity, TypesOFItems Type, double Price)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(Name))
+                    return BadRequest("Невозможно создать предмет без названия!");
+
+                else if (Quantity == 0)
+                    return BadRequest("Невозможно создать предмет с колличество 0!");
+
+                else if (Type == 0)
+                    return BadRequest("Невозможно создать предмет не указав его тип!");
+
+                else
+                {
+                    Item item = new (Name, Quantity, Type, Price);
+                    item.AddItemsInList(ListOfItems, item);
+                    return Ok(item);
+                }
+            }
+            catch { return BadRequest("Вы Указали недопустимые значения"); }
+
+        }
+
+        [HttpGet("Search/", Name = "GetItemSearch")]// поиск предметов по конкретному полю
+        public IActionResult Search(EnumItemFields SearchField, string Value)
+        {
+            if (string.IsNullOrEmpty(Value))
+                return BadRequest("Value не может быть Null"); 
+            switch (SearchField)
+            {
+                case EnumItemFields.Id:
                     {
                         try
                         {
-
-                            int Intvalue = int.Parse(Value);
-                            IEnumerable<Item> SortedListItems = items.Where(i => i.Id == Intvalue);
-                            return SortedListItems;
+                            Guid GuidValue = Guid.Parse(Value);
+                            IEnumerable<Item> SortedListItems = ListOfItems.Where(i => i.Id == GuidValue);
+                            return Ok(SortedListItems);
                         }
-                        catch { return items; }; 
+                        catch { return BadRequest("Вы ввели неверное значение!"); } 
                     }
-                case "Name":
-                    {
-                        return items.Where(i => i.Name == Value);
-                    }
-                case "Type":
-                    {
-                        if (Enum.TryParse(Value, out TypesOFItems itemType))
-                        {
-                            IEnumerable<Item> SortedListItems = items.Where(i => i.Type == itemType);
-                            return SortedListItems;
-                        }
-                        else
-                        {
-                            // Обработка случая, когда Value не может быть преобразовано в TypesOFItems
-                            return items;
-                        }
-                    }
-                case "Price":
+                case EnumItemFields.Name:
                     {
                         try
                         {
-                            int Intvalue = int.Parse(Value);
-                            IEnumerable<Item> SortedListItems = items.Where(i => i.Price <= Intvalue);
-                            return SortedListItems;
+                            Value = Value.ToLower().Trim();
+                            return Ok(ListOfItems.Where(i => i.Name?.ToLower() == Value));
                         }
-                        catch { return items; };
+                        catch { return BadRequest("Вы ввели несуществующее название!"); }
                     }
-
-                default: return items;
-
-
+                case EnumItemFields.Type:
+                    {
+                        if (Enum.TryParse(Value, true, out TypesOFItems itemType))
+                        {
+                            IEnumerable<Item> sortedListItems = ListOfItems.Where(i => i.Type == itemType);
+                            return Ok(sortedListItems);
+                        }
+                        else { return BadRequest("Такого типа не существует!"); }
+                    }
+                case EnumItemFields.Price: // он выводит все предметы '<=' числу которое мы введем
+                    {
+                        try
+                        {
+                            double DoubleValue = double.Parse(Value);
+                            IEnumerable<Item> SortedListItems = ListOfItems.Where(i => i.Price <= DoubleValue);
+                            return Ok(SortedListItems);
+                        }
+                        catch { return BadRequest("Вы ввели неверное значение!"); }
+                    }
+                default: return Ok(ListOfItems);
             }
         }
-
-
     }
 }
