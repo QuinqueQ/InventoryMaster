@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.TagHelpers;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using System.Xml.Linq;
+using InventoryMaster.Enums;
 
 namespace InventoryMaster.Controllers
 {
@@ -16,36 +17,51 @@ namespace InventoryMaster.Controllers
     {
         private static  List<Item> ListOfItems = new ()
 {
-            new Item { Name = "Cok", Price = 12.3, Type = TypesOFItems.Liquid },
-            new Item { Name = "Chocolate", Price = 23.5, Type = TypesOFItems.Eat },
-            new Item { Name = "Water", Price = 1.5, Type = TypesOFItems.Liquid },
-            new Item { Name = "Bread", Price = 5.0, Type = TypesOFItems.Eat },
-            new Item { Name = "Juice", Price = 3.0, Type = TypesOFItems.Liquid },
-            new Item { Name = "Pizza", Price = 15.5, Type = TypesOFItems.Eat },
-            new Item { Name = "Milk", Price = 2.5, Type = TypesOFItems.Liquid },
-            new Item { Name = "Cheese", Price = 8.0, Type = TypesOFItems.Eat },
-            new Item { Name = "Soda", Price = 1.0, Type = TypesOFItems.Liquid },
-            new Item { Name = "Chips", Price = 4.5, Type = TypesOFItems.Eat },
-            new Item { Name = "Tea", Price = 2.0, Type = TypesOFItems.Liquid },
-            new Item { Name = "Ice Cream", Price = 6.5, Type = TypesOFItems.Eat },
-            new Item { Name = "Ice Tea", Price = 5.5, Type = TypesOFItems.Liquid }
+            new Item { Name = "Cok", Price = 12.3, Type = EnumTypesOFItems.Liquid },
+            new Item { Name = "Chocolate", Price = 23.5, Type = EnumTypesOFItems.Eat },
+            new Item { Name = "Water", Price = 1.5, Type = EnumTypesOFItems.Liquid },
+            new Item { Name = "Bread", Price = 5.0, Type = EnumTypesOFItems.Eat },
+            new Item { Name = "Juice", Price = 3.0, Type = EnumTypesOFItems.Liquid },
+            new Item { Name = "Pizza", Price = 15.5, Type = EnumTypesOFItems.Eat },
+            new Item { Name = "Milk", Price = 2.5, Type = EnumTypesOFItems.Liquid },
+            new Item { Name = "Cheese", Price = 8.0, Type = EnumTypesOFItems.Eat },
+            new Item { Name = "Soda", Price = 1.0, Type = EnumTypesOFItems.Liquid },
+            new Item { Name = "Chips", Price = 4.5, Type = EnumTypesOFItems.Eat },
+            new Item { Name = "Tea", Price = 2.0, Type = EnumTypesOFItems.Liquid },
+            new Item { Name = "Ice Cream", Price = 6.5, Type = EnumTypesOFItems.Eat },
+            new Item { Name = "Ice Tea", Price = 5.5, Type = EnumTypesOFItems.Liquid }
 };
 
-        
-        
+
+
 
         [HttpGet(Name = "GetItems")]
-        public IActionResult Get()//основной гет запрос на все существующие предметы в нашем "хранилище"
+        public IActionResult Sort(EnumItemSortField Sort)
         {
-            if (ListOfItems == null || ListOfItems.Count == 0)
+            switch (Sort)
             {
-                return BadRequest("Ваш инвентарь пуст :(");
+                case EnumItemSortField.Name_Ascending:
+                    return Ok(ListOfItems.OrderBy(item => item.Name));
+
+                case EnumItemSortField.Name_Descending: 
+                    return Ok(ListOfItems.OrderByDescending(item => item.Name));
+
+                case EnumItemSortField.Type:
+                    return Ok(ListOfItems.OrderBy(item => item.Type));
+
+                case EnumItemSortField.Price_Ascending:
+                    return Ok(ListOfItems.OrderBy(item => item.Price));
+
+                case EnumItemSortField.Price_Descending:
+                    return Ok(ListOfItems.OrderByDescending(item => item.Price));
+
+                default: return Ok(ListOfItems); 
             }
-            return Ok(ListOfItems);
+
         }
 
-        [HttpPost(Name = "PostItems")]// пост запрос, для добавления предмета
-        public IActionResult Post(string? Name, int Quantity, TypesOFItems Type, double Price)
+            [HttpPost(Name = "PostItems")]// пост запрос, для добавления предмета
+        public IActionResult Post(string? Name, int Quantity, EnumTypesOFItems Type, double Price)
         {
             try
             {
@@ -92,7 +108,7 @@ namespace InventoryMaster.Controllers
                         }
                     case EnumItemFields.Type:
                         {
-                            if (Enum.TryParse(Value, true, out TypesOFItems itemType))
+                            if (Enum.TryParse(Value, true, out EnumTypesOFItems itemType))
                             {
                                 IEnumerable<Item> sortedListItems = ListOfItems.Where(i => i.Type == itemType);
                                 return Ok(sortedListItems);

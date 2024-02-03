@@ -1,6 +1,6 @@
-﻿namespace InventoryMaster.Model
+﻿namespace InventoryMaster.Enums
 {
-    public enum  TypesOFItems
+    public enum EnumTypesOFItems
     {
         Eat = 1,
         Liquid,
