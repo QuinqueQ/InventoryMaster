@@ -1,4 +1,6 @@
+using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
+
 
 namespace InventoryMaster
 {
@@ -6,6 +8,7 @@ namespace InventoryMaster
     {
         public static void Main(string[] args)
         {
+           
             var builder = WebApplication.CreateBuilder(args);
 
 
@@ -14,6 +17,9 @@ namespace InventoryMaster
             options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+
+
+            builder.Services.AddDbContext<ItemsDBContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             var app = builder.Build();
 
