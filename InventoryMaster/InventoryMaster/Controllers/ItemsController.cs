@@ -60,7 +60,29 @@ namespace InventoryMaster.Controllers
 
         }
 
-            [HttpPost(Name = "PostItems")]// пост запрос, для добавления предмета
+        [HttpDelete("{id}", Name = "DeleteItem")]
+        public IActionResult Delete(Guid id)
+        {
+            try
+            {
+                Item itemToRemove = ListOfItems.FirstOrDefault(item => item.Id == id);
+
+                if (itemToRemove == null)
+                {
+                    return NotFound("Предмет не найден");
+                }
+
+                ListOfItems.Remove(itemToRemove);
+                return Ok("Предмет успешно удален");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("Произошла ошибка " + ex.Message);
+            }
+        }
+
+
+        [HttpPost(Name = "PostItems")]// пост запрос, для добавления предмета
         public IActionResult Post(string? Name, int Quantity, EnumTypesOFItems Type, double Price)
         {
             try
