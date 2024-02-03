@@ -45,7 +45,7 @@ namespace InventoryMaster.Controllers
         }
 
         [HttpPost(Name = "PostItems")]// пост запрос, для добавления предмета
-        public IActionResult Post(string Name, int Quantity, TypesOFItems Type, double Price)
+        public IActionResult Post(string? Name, int Quantity, TypesOFItems Type, double Price)
         {
             try
             {
@@ -70,51 +70,51 @@ namespace InventoryMaster.Controllers
         }
 
         [HttpGet("Search/", Name = "GetItemSearch")]// поиск предметов по конкретному полю
-        public IActionResult Search(EnumItemFields SearchField, string Value)
+        public IActionResult Search(EnumItemFields SearchField, string? Value)
         {
-            if (string.IsNullOrEmpty(Value))
-                return BadRequest("Value не может быть Null"); 
-            switch (SearchField)
+            try
             {
-                case EnumItemFields.Id:
-                    {
-                        try
+                if (string.IsNullOrEmpty(Value))
+                    return BadRequest("Value не может быть Null");
+
+                switch (SearchField)
+                {
+                    case EnumItemFields.Id:
                         {
                             Guid GuidValue = Guid.Parse(Value);
                             IEnumerable<Item> SortedListItems = ListOfItems.Where(i => i.Id == GuidValue);
                             return Ok(SortedListItems);
                         }
-                        catch { return BadRequest("Вы ввели неверное значение!"); } 
-                    }
-                case EnumItemFields.Name:
-                    {
-                        try
+                    case EnumItemFields.Name:
                         {
                             Value = Value.ToLower().Trim();
                             return Ok(ListOfItems.Where(i => i.Name?.ToLower() == Value));
                         }
-                        catch { return BadRequest("Вы ввели несуществующее название!"); }
-                    }
-                case EnumItemFields.Type:
-                    {
-                        if (Enum.TryParse(Value, true, out TypesOFItems itemType))
+                    case EnumItemFields.Type:
                         {
-                            IEnumerable<Item> sortedListItems = ListOfItems.Where(i => i.Type == itemType);
-                            return Ok(sortedListItems);
+                            if (Enum.TryParse(Value, true, out TypesOFItems itemType))
+                            {
+                                IEnumerable<Item> sortedListItems = ListOfItems.Where(i => i.Type == itemType);
+                                return Ok(sortedListItems);
+                            }
+                            else { return BadRequest("Такого типа не существует!"); }
                         }
-                        else { return BadRequest("Такого типа не существует!"); }
-                    }
-                case EnumItemFields.Price: // он выводит все предметы '<=' числу которое мы введем
-                    {
-                        try
+                    case EnumItemFields.Price:
                         {
-                            double DoubleValue = double.Parse(Value);
-                            IEnumerable<Item> SortedListItems = ListOfItems.Where(i => i.Price <= DoubleValue);
-                            return Ok(SortedListItems);
+                            if (double.TryParse(Value, out double DoubleValue))
+                            {
+                                IEnumerable<Item> SortedListItems = ListOfItems.Where(i => i.Price == DoubleValue);
+                                return Ok(SortedListItems);
+                            }
+                            else { return BadRequest("Вы ввели неверное значение!"); }
                         }
-                        catch { return BadRequest("Вы ввели неверное значение!"); }
-                    }
-                default: return Ok(ListOfItems);
+                    default:
+                        return BadRequest("Укажите поле поиска!");
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("Произошла ошибка " + ex.Message);
             }
         }
     }
