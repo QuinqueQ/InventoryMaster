@@ -60,12 +60,12 @@ namespace InventoryMaster.Controllers
 
         }
 
-        [HttpDelete("{id}", Name = "DeleteItem")]
-        public IActionResult Delete(Guid id)
+        [HttpDelete("Id", Name = "DeleteItem")]
+        public IActionResult DeleteQuantity(Guid Id)
         {
             try
             {
-                Item itemToRemove = ListOfItems.FirstOrDefault(item => item.Id == id);
+                Item itemToRemove = ListOfItems.FirstOrDefault(item => item.Id == Id);
 
                 if (itemToRemove == null)
                 {
@@ -74,6 +74,33 @@ namespace InventoryMaster.Controllers
 
                 ListOfItems.Remove(itemToRemove);
                 return Ok("Предмет успешно удален");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("Произошла ошибка " + ex.Message);
+            }
+        }
+
+
+        [HttpPut("UpdateItem", Name = "UpdateItem")]
+        public IActionResult UpdateItem(Guid ItemId, [FromBody] Item updatedItem)
+        {
+            try
+            {
+                Item itemToUpdate = ListOfItems.FirstOrDefault(item => item.Id == ItemId);
+
+                if (itemToUpdate == null)
+                {
+                    return NotFound("Предмет не найден");
+                }
+
+               
+                itemToUpdate.Name = updatedItem.Name;
+                itemToUpdate.Quantity = updatedItem.Quantity;
+                itemToUpdate.Type = updatedItem.Type;
+                itemToUpdate.Price = updatedItem.Price;
+
+                return Ok("Предмет успешно обновлен");
             }
             catch (Exception ex)
             {
