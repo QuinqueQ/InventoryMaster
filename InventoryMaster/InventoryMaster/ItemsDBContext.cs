@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using InventoryMaster.Model;
+using Microsoft.EntityFrameworkCore;
 
 namespace InventoryMaster
 {
@@ -8,6 +9,7 @@ namespace InventoryMaster
         {
 
         }
+        public DbSet<Item> Items { get; set; } // DbSet, представляющий таблицу "Items" в базе данных
     }
   
 }
