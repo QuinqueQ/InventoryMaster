@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace InventoryMaster.Migrations
 {
-    public partial class CreateItemsTable : Migration
+    public partial class CreateTable : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
