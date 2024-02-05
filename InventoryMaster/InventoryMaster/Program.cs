@@ -32,7 +32,6 @@ namespace InventoryMaster
 
             app.UseAuthorization();
 
-
             app.MapControllers();
 
             app.Run();

@@ -9,7 +9,7 @@ namespace InventoryMaster
         {
 
         }
-        public DbSet<Item> Items { get; set; } // DbSet, представляющий таблицу "Items" в базе данных
+        public DbSet<Item> Items { get; set; } // DbSet,  таблица Items в базе данных
     }
   
 }
