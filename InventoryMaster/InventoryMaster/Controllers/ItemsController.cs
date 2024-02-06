@@ -167,5 +167,76 @@ namespace InventoryMaster.Controllers
                 return BadRequest("Произошла ошибка " + ex.Message);
             }
         }
+
+        [HttpPut("UpdateItem/{itemId}", Name = "UpdateItem")]
+        public IActionResult UpdateItem(Guid itemId, [FromBody] Item updatedItem)
+        {
+            try
+            {
+                Item itemToUpdate = _context.Items.FirstOrDefault(item => item.Id == itemId);
+
+                if (itemToUpdate == null)
+                {
+                    return NotFound("Предмет не найден");
+                }
+
+                // Проверяем, какое поле нужно обновить
+                if (updatedItem.Name != null)
+                {
+                    itemToUpdate.Name = updatedItem.Name;
+                }
+                else if (updatedItem.Quantity != 0)
+                {
+                    itemToUpdate.Quantity = updatedItem.Quantity;
+                }
+                else if (updatedItem.Type != EnumTypesOFItems.None)
+                {
+                    itemToUpdate.Type = updatedItem.Type;
+                }
+                else if (updatedItem.Price != 0)
+                {
+                    itemToUpdate.Price = updatedItem.Price;
+                }
+
+                _context.SaveChanges();
+
+                return Ok("Предмет успешно обновлен");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("Произошла ошибка " + ex.Message);
+            }
+        }
+
+
+        [HttpDelete("{id}", Name = "DeleteItem")]
+        public IActionResult Delete(Guid id)
+        {
+            try
+            {
+                // Находим элемент в базе данных по его идентификатору
+                Item itemToRemove = _context.Items.FirstOrDefault(item => item.Id == id);
+
+                // Проверяем, существует ли элемент с таким идентификатором
+                if (itemToRemove == null)
+                {
+                    return NotFound("Предмет не найден");
+                }
+
+                // Удаляем элемент из контекста базы данных
+                _context.Items.Remove(itemToRemove);
+
+                // Сохраняем изменения в базе данных
+                _context.SaveChanges();
+
+                // Возвращаем успешный результат
+                return Ok("Предмет успешно удален");
+            }
+            catch (Exception ex)
+            {
+                // Если произошла ошибка, возвращаем сообщение об ошибке
+                return BadRequest("Произошла ошибка " + ex.Message);
+            }
+        }
     }
 }
