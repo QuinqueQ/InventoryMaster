@@ -5,7 +5,8 @@
         Eat = 1,
         Liquid,
         Tool,
-        Cloth
+        Cloth,
+        None
 
     }
 }
