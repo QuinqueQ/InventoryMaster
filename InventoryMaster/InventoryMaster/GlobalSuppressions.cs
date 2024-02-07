@@ -5,4 +5,4 @@
 
 using System.Diagnostics.CodeAnalysis;
 
-[assembly: SuppressMessage("Style", "IDE0044:Добавить модификатор только для чтения", Justification = "<Ожидание>", Scope = "member", Target = "~F:InventoryMaster.Controllers.ItemsController.ListOfItems")]
+[assembly: SuppressMessage("Style", "IDE0066:Преобразовать оператор switch в выражение", Justification = "<Ожидание>", Scope = "member", Target = "~M:InventoryMaster.Controllers.ItemsController.Sort(InventoryMaster.Enums.EnumItemSortField)~Microsoft.AspNetCore.Mvc.IActionResult")]
