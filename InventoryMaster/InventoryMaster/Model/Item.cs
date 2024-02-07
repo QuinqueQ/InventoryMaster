@@ -19,10 +19,10 @@ namespace InventoryMaster.Model
         }
         public Guid Id { get; set; }
         public string? Name { get; set; }
-        public int Quantity { get; set; } = 1; // сразу присваиваю колличество 1, в основном для создания предмета хардкодом(чтобы не создавался предмет с колличеством 0)
+        public int Quantity { get; set; }
 
         [JsonConverter(typeof(JsonStringEnumConverter))] // Этот конвертер преобразует значения перечисления енамки в строки при сериализации в JSON и обратно при десериализации из JSON.
-        public EnumTypesOFItems  Type { get; set; } //Енамка типов предметов(пользователю нельзя писать название типа предмета от себя, он должен выбирать из существующего или же, сначала он должен будет добавлять в енамку новый тип предметов)
+        public EnumTypesOFItems  Type { get; set; } //Енамка типов предметов(пользователю нельзя писать название типа предмета от себя, он должен выбирать из существующего)
         public double Price { get; set; }
 
     }

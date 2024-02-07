@@ -15,8 +15,8 @@ namespace InventoryMaster.Controllers
             _itemService = itemService;
         }
 
-        private readonly ItemsDBContext _context;
-        private readonly IItemService _itemService;
+        private readonly ItemsDBContext _context; //контекст базы данных, через него работает со всеми опирациями
+        private readonly IItemService _itemService; // добавил сервис для для добавления предметов в бд
 
         [HttpGet(Name = "GetItems")]
         public IActionResult Sort(EnumItemSortField Sort) // get items с возможностью сортировки

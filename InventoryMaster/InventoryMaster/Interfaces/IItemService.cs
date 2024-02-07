@@ -1,6 +1,6 @@
 ﻿using InventoryMaster.Model;
 
-namespace InventoryMaster.Services
+namespace InventoryMaster.Interfaces
 {
     public interface IItemService
     {

@@ -1,4 +1,5 @@
-﻿using InventoryMaster.Model;
+﻿using InventoryMaster.Interfaces;
+using InventoryMaster.Model;
 using Microsoft.EntityFrameworkCore;
 
 namespace InventoryMaster.Services
