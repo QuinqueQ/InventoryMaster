@@ -1,6 +1,7 @@
 ﻿using InventoryMaster.Model;
 using Microsoft.AspNetCore.Mvc;
 using InventoryMaster.Enums;
+using InventoryMaster.Interfaces;
 
 namespace InventoryMaster.Controllers
 {
@@ -8,94 +9,65 @@ namespace InventoryMaster.Controllers
     [Route("[controller]")]
     public class ItemsController : ControllerBase
     {
-        public ItemsController(ItemsDBContext context)
+        public ItemsController(ItemsDBContext context, IItemService itemService)
         {
             _context = context;
-            ListItemsFromDB = _context.Items.ToList();    //создаем контекст базы данных и присваиваем нашему листу
+            _itemService = itemService;
         }
 
         private readonly ItemsDBContext _context;
-        private List<Item> ListItemsFromDB { get; set; }//лист базы данных
- 
-        private IActionResult? TryAddItemToDB(Item newItem) // метод для проверки существует ли похожий предмет, если да, то он его нахолит и меняет колличество (решил оставть в контроллере, потому что за его пределами использование метода я не рассматриваю!!!)
-        {
-
-            Item? existingItem = _context.Items.FirstOrDefault(item =>
-                item.Type == newItem.Type &&
-                item.Name == newItem.Name &&
-                item.Price == newItem.Price);
-
-            if (existingItem != null)
-            {
-
-                existingItem.Quantity += newItem.Quantity;
-                _context.SaveChanges();
-                return Ok(existingItem);
-            }
-
-            return null;
-        }
-
+        private readonly IItemService _itemService;
 
         [HttpGet(Name = "GetItems")]
         public IActionResult Sort(EnumItemSortField Sort) // get items с возможностью сортировки
         {
+            if (!_context.Items.Any())
+                return NotFound("Ваша база данных пуста!");
+
             switch (Sort)
             {
                 case EnumItemSortField.Name_Ascending:
-                    return Ok(ListItemsFromDB.OrderBy(item => item.Name));
+                    return Ok(_context.Items.OrderBy(item => item.Name));
 
                 case EnumItemSortField.Name_Descending:
-                    return Ok(ListItemsFromDB.OrderByDescending(item => item.Name));
+                    return Ok(_context.Items.OrderByDescending(item => item.Name));
 
                 case EnumItemSortField.Type:
-                    return Ok(ListItemsFromDB.OrderBy(item => item.Type));
+                    return Ok(_context.Items.OrderBy(item => item.Type));
 
                 case EnumItemSortField.Price_Ascending:
-                    return Ok(ListItemsFromDB.OrderBy(item => item.Price));
+                    return Ok(_context.Items.OrderBy(item => item.Price));
 
                 case EnumItemSortField.Quantity_Ascending:
-                    return Ok(ListItemsFromDB.OrderBy(item => item.Quantity));
+                    return Ok(_context.Items.OrderBy(item => item.Quantity));
 
                 case EnumItemSortField.Quantity_Descending:
-                    return Ok(ListItemsFromDB.OrderByDescending(item => item.Quantity));
+                    return Ok(_context.Items.OrderByDescending(item => item.Quantity));
 
                 case EnumItemSortField.Price_Descending:
-                    return Ok(ListItemsFromDB.OrderByDescending(item => item.Price));
+                    return Ok(_context.Items.OrderByDescending(item => item.Price));
 
-                default: return ListItemsFromDB.Any() ? Ok(ListItemsFromDB) : BadRequest("Ваша база данных пуста!");
-
-
+                default: return Ok(_context.Items);
             }
 
         }
-
         [HttpPost(Name = "PostItems")]
-        public IActionResult Post(string? Name, int Quantity, EnumTypesOFItems Type, double Price) // пост запрос, для добавления предмета
+        public async Task<IActionResult> Post(string? Name, int Quantity, EnumTypesOFItems Type, double Price)
         {
-            
             if (string.IsNullOrEmpty(Name) || Quantity <= 0 || Type == 0)
-            {
                 return BadRequest("Невозможно создать предмет из-за неполных данных!");
-            }
-            else
-            {
+
                 Name = Name.Trim();
                 Item newItem = new(Name, Quantity, Type, Price);
-
-                IActionResult? result = TryAddItemToDB(newItem);
-
-                if (result != null)
+                try
                 {
-                   return result;
+                    Item result = await _itemService.TryAddItemToDBAsync(newItem);
+                    return Ok(result);
                 }
-                else
+                catch (Exception ex)
                 {
-                   _context.Items.Add(newItem);
-                   _context.SaveChanges();
-                   return Ok(newItem);
+                    return BadRequest($"Ошибка при добавлении предмета: {ex.Message}");
                 }
-            }
         }
 
 
@@ -111,29 +83,29 @@ namespace InventoryMaster.Controllers
                     case EnumItemFields.Id:
                         {
                             Guid GuidValue = Guid.Parse(Value);
-                            return ListItemsFromDB.Any(i => i.Id == GuidValue)
-                            ? Ok(ListItemsFromDB.Where(i => i.Id == GuidValue))
+                            return _context.Items.Any(i => i.Id == GuidValue)
+                            ? Ok(_context.Items.Where(i => i.Id == GuidValue))
                             : BadRequest("Пусто");
                         }
                     case EnumItemFields.Name:
                         {
                             Value = Value?.ToLower().Trim();
-                            List<Item> items = ListItemsFromDB.Where(i => i.Name?.ToLower() == Value).ToList();
-                            return items.Any() ? Ok(items) : NotFound($"Предмет с именем '{Value}' не найден.");
+                            List<Item> items = _context.Items.Where(i => i.Name != null && i.Name.ToLower() == Value).ToList();
+                            return items.Count > 0 ? Ok(items) : NotFound($"Предмет с именем '{Value}' не найден.");
                         }
                     case EnumItemFields.Type:
                         {
                             return Enum.TryParse(Value, true, out EnumTypesOFItems itemType)
-                            ? ListItemsFromDB.Any(i => i.Type == itemType)
-                            ? Ok(ListItemsFromDB.Where(i => i.Type == itemType))
+                            ? _context.Items.Any(i => i.Type == itemType)
+                            ? Ok(_context.Items.Where(i => i.Type == itemType))
                             : BadRequest("База не содержит предметов с данным типом!")
                             : BadRequest("Такого типа не существует!");
                         }
                     case EnumItemFields.Price:
                         {
                             return double.TryParse(Value, out double DoubleValue)
-                            ? ListItemsFromDB.Any(i => i.Price == DoubleValue)
-                            ? Ok(ListItemsFromDB.Where(i => i.Price == DoubleValue))
+                            ? _context.Items.Any(i => i.Price == DoubleValue)
+                            ? Ok(_context.Items.Where(i => i.Price == DoubleValue))
                             : BadRequest("Пусто")
                             : BadRequest("Вы ввели неверное значение!");
                         }
@@ -154,7 +126,7 @@ namespace InventoryMaster.Controllers
             if (Quantity <= 0)
                 return BadRequest("Неверно указано количество!");
              
-            Item? itemToDelete = ListItemsFromDB.FirstOrDefault(i => i.Id == Id);
+            Item? itemToDelete = _context.Items.FirstOrDefault(i => i.Id == Id);
 
             if (itemToDelete == null)
                 return NotFound("Предмет не найден!"); 
