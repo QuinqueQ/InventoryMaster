@@ -1,15 +1,6 @@
 ﻿using InventoryMaster.Model;
-using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
-using System.Text.Json;
-using System.Linq;
-using Microsoft.AspNetCore.Mvc.TagHelpers;
-using System.Collections.Generic;
-using System.Text.Json.Serialization;
-using System.Xml.Linq;
 using InventoryMaster.Enums;
-using Microsoft.EntityFrameworkCore;
-using System.Runtime.CompilerServices;
 
 namespace InventoryMaster.Controllers
 {
@@ -20,16 +11,16 @@ namespace InventoryMaster.Controllers
         public ItemsController(ItemsDBContext context)
         {
             _context = context;
-            ItemsFromDatabase = _context.Items.ToList();
+            ListItemsFromDB = _context.Items.ToList();    //создаем контекст базы данных и присваиваем нашему листу
         }
 
         private readonly ItemsDBContext _context;
-        private List<Item> ItemsFromDatabase { get; set; }//лист базы данных
+        private List<Item> ListItemsFromDB { get; set; }//лист базы данных
  
-        private IActionResult? TryUpdateExistingItem(Item newItem) // метод для проверки существует ли похожий предмет, если да, то он его нахолит и меняет колличество (решил оставть в контроллере, потому что за его пределами использование метода я не рассматриваю!!!)
+        private IActionResult? TryAddItemToDB(Item newItem) // метод для проверки существует ли похожий предмет, если да, то он его нахолит и меняет колличество (решил оставть в контроллере, потому что за его пределами использование метода я не рассматриваю!!!)
         {
 
-            var existingItem = _context.Items.FirstOrDefault(item =>
+            Item? existingItem = _context.Items.FirstOrDefault(item =>
                 item.Type == newItem.Type &&
                 item.Name == newItem.Name &&
                 item.Price == newItem.Price);
@@ -52,60 +43,58 @@ namespace InventoryMaster.Controllers
             switch (Sort)
             {
                 case EnumItemSortField.Name_Ascending:
-                    return Ok(ItemsFromDatabase.OrderBy(item => item.Name));
+                    return Ok(ListItemsFromDB.OrderBy(item => item.Name));
 
                 case EnumItemSortField.Name_Descending:
-                    return Ok(ItemsFromDatabase.OrderByDescending(item => item.Name));
+                    return Ok(ListItemsFromDB.OrderByDescending(item => item.Name));
 
                 case EnumItemSortField.Type:
-                    return Ok(ItemsFromDatabase.OrderBy(item => item.Type));
+                    return Ok(ListItemsFromDB.OrderBy(item => item.Type));
 
                 case EnumItemSortField.Price_Ascending:
-                    return Ok(ItemsFromDatabase.OrderBy(item => item.Price));
+                    return Ok(ListItemsFromDB.OrderBy(item => item.Price));
+
+                case EnumItemSortField.Quantity_Ascending:
+                    return Ok(ListItemsFromDB.OrderBy(item => item.Quantity));
+
+                case EnumItemSortField.Quantity_Descending:
+                    return Ok(ListItemsFromDB.OrderByDescending(item => item.Quantity));
 
                 case EnumItemSortField.Price_Descending:
-                    return Ok(ItemsFromDatabase.OrderByDescending(item => item.Price));
+                    return Ok(ListItemsFromDB.OrderByDescending(item => item.Price));
 
-                default: return Ok(ItemsFromDatabase);
+                default: return ListItemsFromDB.Any() ? Ok(ListItemsFromDB) : BadRequest("Ваша база данных пуста!");
+
+
             }
 
         }
 
-        [HttpPost(Name = "PostItems")] 
+        [HttpPost(Name = "PostItems")]
         public IActionResult Post(string? Name, int Quantity, EnumTypesOFItems Type, double Price) // пост запрос, для добавления предмета
         {
-            try
+            
+            if (string.IsNullOrEmpty(Name) || Quantity <= 0 || Type == 0)
             {
-                if (string.IsNullOrEmpty(Name))
-                    return BadRequest("Невозможно создать предмет без названия!");
+                return BadRequest("Невозможно создать предмет из-за неполных данных!");
+            }
+            else
+            {
+                Name = Name.Trim();
+                Item newItem = new(Name, Quantity, Type, Price);
 
-                else if (Quantity == 0)
-                    return BadRequest("Невозможно создать предмет с количеством 0!");
+                IActionResult? result = TryAddItemToDB(newItem);
 
-                else if (Type == 0)
-                    return BadRequest("Невозможно создать предмет не указав его тип!");
-
+                if (result != null)
+                {
+                   return result;
+                }
                 else
                 {
-                    Item newItem = new(Name, Quantity, Type, Price);
-
-                    IActionResult? result = TryUpdateExistingItem(newItem);
-
-                    if (result != null)
-                    {
-                        return result;
-                    }
-                    else
-                    {
-                        _context.Items.Add(newItem);
-                        _context.SaveChanges();
-                        return Ok(newItem);
-                    }
+                   _context.Items.Add(newItem);
+                   _context.SaveChanges();
+                   return Ok(newItem);
                 }
-            }
-            catch
-            {
-                return BadRequest("Вы указали недопустимые значения");
             }
         }
 
@@ -113,53 +102,42 @@ namespace InventoryMaster.Controllers
         [HttpGet("Search/", Name = "GetItemSearch")]// поиск предметов по конкретному полю
         public IActionResult Search(EnumItemFields SearchField, string? Value)
         {
+            if (string.IsNullOrEmpty(Value))
+                return BadRequest("Value не может быть Null");
             try
             {
-                if (string.IsNullOrEmpty(Value))
-                    return BadRequest("Value не может быть Null");
-
                 switch (SearchField)
                 {
                     case EnumItemFields.Id:
                         {
                             Guid GuidValue = Guid.Parse(Value);
-                            IEnumerable<Item> SortedListItems = ItemsFromDatabase.Where(i => i.Id == GuidValue);
-                            return Ok(SortedListItems);
+                            return ListItemsFromDB.Any(i => i.Id == GuidValue)
+                            ? Ok(ListItemsFromDB.Where(i => i.Id == GuidValue))
+                            : BadRequest("Пусто");
                         }
                     case EnumItemFields.Name:
                         {
                             Value = Value?.ToLower().Trim();
-                            List<Item> items = ItemsFromDatabase.Where(i => i.Name?.ToLower() == Value).ToList();
-
-                            if (items.Any())
-                            {
-                                return Ok(items);
-                            }
-                            else
-                            {
-                                return NotFound($"Предмет с именем '{Value}' не найден.");
-                            }
+                            List<Item> items = ListItemsFromDB.Where(i => i.Name?.ToLower() == Value).ToList();
+                            return items.Any() ? Ok(items) : NotFound($"Предмет с именем '{Value}' не найден.");
                         }
                     case EnumItemFields.Type:
                         {
-                            if (Enum.TryParse(Value, true, out EnumTypesOFItems itemType))
-                            {
-                                IEnumerable<Item> sortedListItems = ItemsFromDatabase.Where(i => i.Type == itemType);
-                                return Ok(sortedListItems);
-                            }
-                            else { return BadRequest("Такого типа не существует!"); }
+                            return Enum.TryParse(Value, true, out EnumTypesOFItems itemType)
+                            ? ListItemsFromDB.Any(i => i.Type == itemType)
+                            ? Ok(ListItemsFromDB.Where(i => i.Type == itemType))
+                            : BadRequest("База не содержит предметов с данным типом!")
+                            : BadRequest("Такого типа не существует!");
                         }
                     case EnumItemFields.Price:
                         {
-                            if (double.TryParse(Value, out double DoubleValue))
-                            {
-                                IEnumerable<Item> SortedListItems = ItemsFromDatabase.Where(i => i.Price == DoubleValue);
-                                return Ok(SortedListItems);
-                            }
-                            else { return BadRequest("Вы ввели неверное значение!"); }
+                            return double.TryParse(Value, out double DoubleValue)
+                            ? ListItemsFromDB.Any(i => i.Price == DoubleValue)
+                            ? Ok(ListItemsFromDB.Where(i => i.Price == DoubleValue))
+                            : BadRequest("Пусто")
+                            : BadRequest("Вы ввели неверное значение!");
                         }
-                    default:
-                        return BadRequest("Укажите поле поиска!");
+                    default: return BadRequest("Укажите поле поиска!");
                 }
             }
             catch (Exception ex)
@@ -167,5 +145,48 @@ namespace InventoryMaster.Controllers
                 return BadRequest("Произошла ошибка " + ex.Message);
             }
         }
+
+
+
+        [HttpDelete(Name = "DeleteItem")] // запрос на удаление предмета из бд, с возможностью выбора колличества
+        public IActionResult DeleteItem(Guid Id, int Quantity)
+        {
+            if (Quantity <= 0)
+                return BadRequest("Неверно указано количество!");
+             
+            Item? itemToDelete = ListItemsFromDB.FirstOrDefault(i => i.Id == Id);
+
+            if (itemToDelete == null)
+                return NotFound("Предмет не найден!"); 
+
+            itemToDelete.Quantity -= Quantity; // Уменьшаем количество 
+
+            if (itemToDelete.Quantity <= 0)
+            {
+                // yдаляем предмет из базы данных, если его количество стало меньше или равно нулю
+                _context.Items.Remove(itemToDelete);
+                _context.SaveChanges();
+                return Ok("Предмет успешно удален !");
+            }
+            else
+            {
+                _context.Items.Update(itemToDelete);
+                _context.SaveChanges();
+            }
+            return Ok(itemToDelete);
+        }
+
+
+        [HttpDelete("DeleteAllItems/",Name = "DeleteAllItems")]
+        public IActionResult DeleteAllItems() // запрос на удаления всех предметов из бд (дев шняга)
+        {
+            _context.Items.RemoveRange(_context.Items);
+            _context.SaveChanges();
+            return Ok("Все записи успешно удалены из базы данных.");
+        }
+
+
+
+
     }
 }

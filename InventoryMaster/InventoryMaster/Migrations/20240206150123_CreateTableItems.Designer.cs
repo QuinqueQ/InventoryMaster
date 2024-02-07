@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace InventoryMaster.Migrations
 {
     [DbContext(typeof(ItemsDBContext))]
-    [Migration("20240205113809_CreateItemsTable")]
-    partial class CreateItemsTable
+    [Migration("20240206150123_CreateTableItems")]
+    partial class CreateTableItems
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
