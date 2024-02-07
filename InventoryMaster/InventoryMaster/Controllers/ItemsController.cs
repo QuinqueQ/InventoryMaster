@@ -17,7 +17,7 @@ namespace InventoryMaster.Controllers
         private readonly ItemsDBContext _context; //контекст базы данных, через него работает со всеми опирациями
         private readonly IItemService _itemService; // добавил сервис для для добавления предметов в бд
 
-        public ItemsController(ItemsDBContext context, IItemService itemService)
+        public ItemsController(ItemsDBContext context, IItemService itemService) // конструктор для контекста бд и сервиса 
         {
             _context = context;
             _itemService = itemService;
