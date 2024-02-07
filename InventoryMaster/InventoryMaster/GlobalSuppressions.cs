@@ -4,4 +4,4 @@
 
 using System.Diagnostics.CodeAnalysis;
 
-[assembly: SuppressMessage("Style", "IDE0066:Преобразовать оператор switch в выражение", Justification = "<Ожидание>", Scope = "member", Target = "~M:InventoryMaster.Controllers.ItemsController.Sort(InventoryMaster.Enums.EnumItemSortField)~Microsoft.AspNetCore.Mvc.IActionResult")]
+[assembly: SuppressMessage("Style", "IDE0066:Преобразовать оператор switch в выражение", Justification = "<Ожидание>", Scope = "member", Target = "~M:InventoryMaster.Controllers.ItemsController.Sort(InventoryMaster.Enums.EnumItemSortField)~System.Threading.Tasks.Task{Microsoft.AspNetCore.Mvc.IActionResult}")]
