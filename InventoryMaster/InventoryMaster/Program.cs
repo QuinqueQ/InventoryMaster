@@ -49,11 +49,8 @@ namespace InventoryMaster
 
             app.UseAuthorization();
 
-<<<<<<< HEAD
-            //JanarGay
-=======
+
             // Разрешение маршрутов для контроллеров
->>>>>>> Nazarq
             app.MapControllers();
 
             app.Run();
