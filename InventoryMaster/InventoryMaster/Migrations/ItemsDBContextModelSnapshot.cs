@@ -22,6 +22,23 @@ namespace InventoryMaster.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
 
+            modelBuilder.Entity("InventoryMaster.Entities.TypeOfItems", b =>
+                {
+                    b.Property<int>("TypeId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TypeId"), 1L, 1);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("TypeId");
+
+                    b.ToTable("TypeOfItems");
+                });
+
             modelBuilder.Entity("InventoryMaster.Model.Item", b =>
                 {
                     b.Property<Guid>("Id")
@@ -37,12 +54,25 @@ namespace InventoryMaster.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
-                    b.Property<int>("Type")
+                    b.Property<int>("TypeOfItemsId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("TypeOfItemsId");
+
                     b.ToTable("Items");
+                });
+
+            modelBuilder.Entity("InventoryMaster.Model.Item", b =>
+                {
+                    b.HasOne("InventoryMaster.Entities.TypeOfItems", "Type")
+                        .WithMany()
+                        .HasForeignKey("TypeOfItemsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Type");
                 });
 #pragma warning restore 612, 618
         }
