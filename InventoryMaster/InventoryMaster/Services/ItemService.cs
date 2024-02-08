@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace InventoryMaster.Services
 {
-    public class ItemService : IItemService
+    public class ItemService : IItemService //сервис для создания предметов в бд
     {
         private readonly ItemsDBContext _context;
 

@@ -3,5 +3,4 @@
 // Подавление на уровне проекта либо не имеет целевого объекта, либо задано для конкретного объекта и ограничено пространством имен, типом, членом и т. д.
 
 using System.Diagnostics.CodeAnalysis;
-
-[assembly: SuppressMessage("Style", "IDE0066:Преобразовать оператор switch в выражение", Justification = "<Ожидание>", Scope = "member", Target = "~M:InventoryMaster.Controllers.ItemsController.Sort(InventoryMaster.Enums.EnumItemSortField)~System.Threading.Tasks.Task{Microsoft.AspNetCore.Mvc.IActionResult}")]
+[assembly: SuppressMessage("Usage", "CA2254:Шаблон должен быть статическим выражением", Justification = "<Ожидание>", Scope = "member", Target = "~M:InventoryMaster.Services.ZeroQuantityItemsCleanupService.ExecuteAsync(System.Threading.CancellationToken)~System.Threading.Tasks.Task")]

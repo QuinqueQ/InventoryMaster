@@ -1,6 +1,7 @@
 using InventoryMaster.Interfaces;
 using InventoryMaster.Services;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 using System.Text.Json.Serialization;
 
 namespace InventoryMaster
@@ -10,6 +11,12 @@ namespace InventoryMaster
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            // Пытался выводить логи в отдельный файл
+            Log.Logger = new LoggerConfiguration()
+            .WriteTo.File("logs/log.txt", rollingInterval: RollingInterval.Day, outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}")
+            .CreateLogger();
+
 
             // Регистрация контекста базы данных
             builder.Services.AddDbContext<ItemsDBContext>(options =>
@@ -25,6 +32,11 @@ namespace InventoryMaster
             // Добавление генерации OpenAPI спецификации
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+
+            builder.Services.AddHostedService<ZeroQuantityItemsCleanupService>();//o
+
+
+            Log.Information("Запись лога в текстовый файл");
 
             var app = builder.Build();
 
