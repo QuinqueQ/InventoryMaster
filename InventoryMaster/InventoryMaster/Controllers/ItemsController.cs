@@ -2,10 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using InventoryMaster.Enums;
 using InventoryMaster.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 
 namespace InventoryMaster.Controllers
@@ -24,38 +20,86 @@ namespace InventoryMaster.Controllers
         }
 
         [HttpGet(Name = "GetItems")]
-        public async Task<IActionResult> Sort(EnumItemSortField Sort) // get items с возможностью сортировки
+        public async Task<IActionResult> SortDefault()
         {
             if (!_context.Items.Any())
                 return NotFound("Ваша база данных пуста!");
 
-            switch (Sort)
-            {
-                case EnumItemSortField.Name_Ascending:
-                    return Ok(await _context.Items.OrderBy(item => item.Name).ToListAsync());
-
-                case EnumItemSortField.Name_Descending:
-                    return Ok(await _context.Items.OrderByDescending(item => item.Name).ToListAsync());
-
-                case EnumItemSortField.Type:
-                    return Ok(await _context.Items.OrderBy(item => item.Type).ToListAsync());
-
-                case EnumItemSortField.Price_Ascending:
-                    return Ok(await _context.Items.OrderBy(item => item.Price).ToListAsync());
-
-                case EnumItemSortField.Quantity_Ascending:
-                    return Ok(await _context.Items.OrderBy(item => item.Quantity).ToListAsync());
-
-                case EnumItemSortField.Quantity_Descending:
-                    return Ok(await _context.Items.OrderByDescending(item => item.Quantity).ToListAsync());
-
-                case EnumItemSortField.Price_Descending:
-                    return Ok(await _context.Items.OrderByDescending(item => item.Price).ToListAsync());
-
-                default:
-                    return Ok(await _context.Items.ToListAsync());
-            }
+            var items = await _context.Items.ToListAsync();
+            return Ok(items);
         }
+
+        [HttpGet("SortByNameAscending", Name = "SortByNameAscending")]
+        public async Task<IActionResult> SortByNameAscending()
+        {
+            if (!_context.Items.Any())
+                return NotFound("Ваша база данных пуста!");
+
+            var sortedItems = await _context.Items.OrderBy(item => item.Name).ToListAsync();
+            return Ok(sortedItems);
+        }
+
+        [HttpGet("SortByNameDescending", Name = "SortByNameDescending")]
+        public async Task<IActionResult> SortByNameDescending()
+        {
+            if (!_context.Items.Any())
+                return NotFound("Ваша база данных пуста!");
+
+            var sortedItems = await _context.Items.OrderByDescending(item => item.Name).ToListAsync();
+            return Ok(sortedItems);
+        }
+
+        [HttpGet("SortByType", Name = "SortByType")]
+        public async Task<IActionResult> SortByType()
+        {
+            if (!_context.Items.Any())
+                return NotFound("Ваша база данных пуста!");
+
+            var sortedItems = await _context.Items.OrderBy(item => item.Type).ToListAsync();
+            return Ok(sortedItems);
+        }
+
+        [HttpGet("SortByPriceAscending", Name = "SortByPriceAscending")]
+        public async Task<IActionResult> SortByPriceAscending()
+        {
+            if (!_context.Items.Any())
+                return NotFound("Ваша база данных пуста!");
+
+            var sortedItems = await _context.Items.OrderBy(item => item.Price).ToListAsync();
+            return Ok(sortedItems);
+        }
+
+        [HttpGet("SortByPriceDescending", Name = "SortByPriceDescending")]
+        public async Task<IActionResult> SortByPriceDescending()
+        {
+            if (!_context.Items.Any())
+                return NotFound("Ваша база данных пуста!");
+
+            var sortedItems = await _context.Items.OrderByDescending(item => item.Price).ToListAsync();
+            return Ok(sortedItems);
+        }
+
+        [HttpGet("SortByQuantityAscending", Name = "SortByQuantityAscending")]
+        public async Task<IActionResult> SortByQuantityAscending()
+        {
+            if (!_context.Items.Any())
+                return NotFound("Ваша база данных пуста!");
+
+            var sortedItems = await _context.Items.OrderBy(item => item.Quantity).ToListAsync();
+            return Ok(sortedItems);
+        }
+
+        [HttpGet("SortByQuantityDescending", Name = "SortByQuantityDescending")]
+        public async Task<IActionResult> SortByQuantityDescending()
+        {
+            if (!_context.Items.Any())
+                return NotFound("Ваша база данных пуста!");
+
+            var sortedItems = await _context.Items.OrderByDescending(item => item.Quantity).ToListAsync();
+            return Ok(sortedItems);
+        }
+
+       
 
         [HttpPost(Name = "PostItems")]
         public async Task<IActionResult> Post(string? Name, int Quantity, EnumTypesOFItems Type, double Price)
@@ -76,53 +120,76 @@ namespace InventoryMaster.Controllers
             }
         }
 
-        [HttpGet("Search/", Name = "GetItemSearch")]// поиск предметов по конкретному полю
-        public async Task<IActionResult> Search(EnumItemFields SearchField, string? Value)
+
+        [HttpGet("SearchById", Name = "SearchById")]
+        public async Task<IActionResult> SearchById(Guid id)
         {
-            if (string.IsNullOrEmpty(Value))
-                return BadRequest("Value не может быть Null");
             try
             {
-                switch (SearchField)
-                {
-                    case EnumItemFields.Id:
-                        {
-                            Guid GuidValue = Guid.Parse(Value);
-                            return _context.Items.Any(i => i.Id == GuidValue)
-                            ? Ok(await _context.Items.Where(i => i.Id == GuidValue).ToListAsync())
-                            : BadRequest("База не содержит предметов с данным типом!");
-                        }
-                    case EnumItemFields.Name:
-                        {
-                            Value = Value?.ToLower().Trim();
-                            List<Item> items = await _context.Items.Where(i => i.Name != null && i.Name.ToLower() == Value).ToListAsync();
-                            return items.Count > 0 ? Ok(items) : NotFound($"Предмет с именем '{Value}' не найден.");
-                        }
-                    case EnumItemFields.Type:
-                        {
-                            return Enum.TryParse(Value, true, out EnumTypesOFItems itemType)
-                            ? _context.Items.Any(i => i.Type == itemType)
-                            ? Ok(await _context.Items.Where(i => i.Type == itemType).ToListAsync())
-                            : BadRequest("База не содержит предметов с данным типом!")
-                            : BadRequest("Такого типа не существует!");
-                        }
-                    case EnumItemFields.Price:
-                        {
-                            return double.TryParse(Value, out double DoubleValue)
-                            ? _context.Items.Any(i => i.Price == DoubleValue)
-                            ? Ok(await _context.Items.Where(i => i.Price == DoubleValue).ToListAsync())
-                            : BadRequest("База не содержит предметов с данным типом!")
-                            : BadRequest("Вы ввели неверное значение!");
-                        }
-                    default:
-                        return BadRequest("Укажите поле поиска!");
-                }
+                var item = await _context.Items.FirstOrDefaultAsync(i => i.Id == id);
+                return item != null ? Ok(item) : NotFound("Предмет не найден!");
             }
             catch (Exception ex)
             {
                 return BadRequest("Произошла ошибка " + ex.Message);
             }
         }
+
+        [HttpGet("SearchByName", Name = "SearchByName")]
+        public async Task<IActionResult> SearchByName(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+                return BadRequest("Value не может быть Null");
+
+            try
+            {
+                value = value.ToLower().Trim();
+                var items = await _context.Items.Where(i => i.Name != null && i.Name.ToLower() == value).ToListAsync();
+                return items.Count > 0 ? Ok(items) : NotFound($"Предмет с именем '{value}' не найден.");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("Произошла ошибка " + ex.Message);
+            }
+        }
+
+        [HttpGet("SearchByType", Name = "SearchByType")]
+        public async Task<IActionResult> SearchByType(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+                return BadRequest("Value не может быть Null");
+
+            try
+            {
+                if (Enum.TryParse(value, true, out EnumTypesOFItems itemType))
+                {
+                    var items = await _context.Items.Where(i => i.Type == itemType).ToListAsync();
+                    return items.Count > 0 ? Ok(items) : BadRequest("База не содержит предметов с данным типом!");
+                }
+                return BadRequest("Такого типа не существует!");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("Произошла ошибка " + ex.Message);
+            }
+        }
+
+        [HttpGet("SearchByPrice", Name = "SearchByPrice")]
+        public async Task<IActionResult> SearchByPrice(double value)
+        {
+            try
+            {
+                var items = await _context.Items.Where(i => i.Price == value).ToListAsync();
+                return items.Count > 0 ? Ok(items) : BadRequest("База не содержит предметов с данным типом!");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("Произошла ошибка " + ex.Message);
+            }
+        }
+
+
+
 
         [HttpDelete(Name = "DeleteItem")] // запрос на удаление предмета из бд, с возможностью выбора колличества
         public async Task<IActionResult> DeleteItem(Guid Id, int Quantity)
@@ -151,7 +218,7 @@ namespace InventoryMaster.Controllers
             return Ok(itemToDelete);
         }
 
-        [HttpDelete("DeleteAllItems/", Name = "DeleteAllItems")]
+        [HttpDelete("DeleteAllItems", Name = "DeleteAllItems")]
         public async Task<IActionResult> DeleteAllItems() // запрос на удаления всех предметов из бд (дев шняга)
         {
             _context.Items.RemoveRange(_context.Items);

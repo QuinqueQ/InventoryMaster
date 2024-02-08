@@ -13,14 +13,14 @@ namespace InventoryMaster
 
             // Регистрация контекста базы данных
             builder.Services.AddDbContext<ItemsDBContext>(options =>
-                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             // Регистрация сервиса
-            builder.Services.AddScoped<IItemService, ItemService>();
+            builder.Services.AddTransient<IItemService, ItemService>();
 
             // Добавление контроллеров
             builder.Services.AddControllers().AddJsonOptions(options =>
-                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+            options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
             // Добавление генерации OpenAPI спецификации
             builder.Services.AddEndpointsApiExplorer();
