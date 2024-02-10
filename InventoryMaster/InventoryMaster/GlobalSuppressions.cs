@@ -4,3 +4,4 @@
 
 using System.Diagnostics.CodeAnalysis;
 [assembly: SuppressMessage("Usage", "CA2254:Шаблон должен быть статическим выражением", Justification = "<Ожидание>", Scope = "member", Target = "~M:InventoryMaster.Services.ZeroQuantityItemsCleanupService.ExecuteAsync(System.Threading.CancellationToken)~System.Threading.Tasks.Task")]
+[assembly: SuppressMessage("Usage", "CA2254:Шаблон должен быть статическим выражением", Justification = "<Ожидание>", Scope = "member", Target = "~M:InventoryMaster.Services.ItemService.TryAddItemToDBAsync(InventoryMaster.Model.Item)~System.Threading.Tasks.Task{InventoryMaster.Model.Item}")]

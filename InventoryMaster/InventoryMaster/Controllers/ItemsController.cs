@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using InventoryMaster.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using InventoryMaster.Dtos;
+using InventoryMaster.Entities;
 
 namespace InventoryMaster.Controllers
 {
@@ -26,7 +27,7 @@ namespace InventoryMaster.Controllers
                 return Ok("Ваша база пуста!");
             try
             {
-                var items = await _context.Items.Include(i => i.Type).ToListAsync(); 
+                List<Item> items = await _context.Items.Include(i => i.Type).ToListAsync(); 
                 return Ok(items);
             }
             catch (Exception ex)
@@ -43,22 +44,30 @@ namespace InventoryMaster.Controllers
         {
             try
             {
-                if (itemUpdateDto == null || itemUpdateDto.Quantity == 0 || itemUpdateDto.Price == 0)
+                if (itemUpdateDto == null || itemUpdateDto.Quantity <= 0 || itemUpdateDto.Price <= 0 || string.IsNullOrEmpty(itemUpdateDto.Name.Trim()))
                 {
                     return BadRequest("Неверные данные для обновления предмета");
                 }
 
-                var existingItem = await _context.Items.FindAsync(id);
+                Item? existingItem = await _context.Items.FirstOrDefaultAsync(item => item.Id == id);
+
 
                 if (existingItem == null)
                 {
                     return NotFound($"Предмет с Id: {id} не найден");
                 }
 
-                existingItem.Name = itemUpdateDto.Name ?? existingItem.Name;
-                existingItem.Quantity = itemUpdateDto.Quantity ?? 0;
-                existingItem.Type = itemUpdateDto.Type;
-                existingItem.Price = itemUpdateDto.Price ?? 0.0; 
+                TypeOfItems? type = await _context.TypeOfItems.FirstOrDefaultAsync(t => t.Name.Trim().ToLower() == itemUpdateDto.Type.Trim().ToLower());
+                if (type == null)
+                {
+                    return BadRequest($"Тип предмета '{itemUpdateDto.Type}' не существует");
+                }
+
+                existingItem.Name = itemUpdateDto.Name.Trim();
+                existingItem.Quantity = itemUpdateDto.Quantity;
+                existingItem.TypeOfItemsId = type.TypeId;
+                existingItem.Type = type;
+                existingItem.Price = itemUpdateDto.Price;
 
                 await _context.SaveChangesAsync();
 
@@ -111,7 +120,7 @@ namespace InventoryMaster.Controllers
         {
             try
             {
-                var sortedItems = await _context.Items.Include(item => item.Type).OrderBy(item => item.Name).ToListAsync();
+                List<Item> sortedItems = await _context.Items.Include(item => item.Type).OrderBy(item => item.Name).ToListAsync();
 
                 return Ok(sortedItems);
             }
@@ -126,7 +135,7 @@ namespace InventoryMaster.Controllers
         {
             try
             {
-                var sortedItems = await _context.Items.Include(item => item.Type).OrderByDescending(item => item.Name).ToListAsync();
+                List<Item> sortedItems = await _context.Items.Include(item => item.Type).OrderByDescending(item => item.Name).ToListAsync();
                 return Ok(sortedItems);
             }
             catch (Exception ex)
@@ -140,7 +149,7 @@ namespace InventoryMaster.Controllers
         {
             try
             {
-                var sortedItems = await _context.Items.Include(item => item.Type).OrderBy(item => item.Type).ToListAsync();
+                List<Item> sortedItems = await _context.Items.Include(item => item.Type).OrderBy(item => item.Type).ToListAsync();
                 return Ok(sortedItems);
             }
             catch (Exception ex)
@@ -154,7 +163,7 @@ namespace InventoryMaster.Controllers
         {
             try
             {
-                var sortedItems = await _context.Items.Include(item => item.Type).OrderBy(item => item.Price).ToListAsync();
+                List<Item> sortedItems = await _context.Items.Include(item => item.Type).OrderBy(item => item.Price).ToListAsync();
                 return Ok(sortedItems);
             }
             catch (Exception ex)
@@ -168,7 +177,7 @@ namespace InventoryMaster.Controllers
         {
             try
             {
-                var sortedItems = await _context.Items.Include(item => item.Type).OrderByDescending(item => item.Price).ToListAsync();
+                List<Item> sortedItems = await _context.Items.Include(item => item.Type).OrderByDescending(item => item.Price).ToListAsync();
                 return Ok(sortedItems);
             }
             catch (Exception ex)
@@ -182,7 +191,7 @@ namespace InventoryMaster.Controllers
         {
             try
             {
-                var sortedItems = await _context.Items.Include(item => item.Type).OrderBy(item => item.Quantity).ToListAsync();
+                List<Item> sortedItems = await _context.Items.Include(item => item.Type).OrderBy(item => item.Quantity).ToListAsync();
                 return Ok(sortedItems);
             }
             catch (Exception ex)
@@ -196,7 +205,7 @@ namespace InventoryMaster.Controllers
         {
             try
             {
-                var sortedItems = await _context.Items.Include(item => item.Type).OrderByDescending(item => item.Quantity).ToListAsync();
+                List<Item> sortedItems = await _context.Items.Include(item => item.Type).OrderByDescending(item => item.Quantity).ToListAsync();
                 return Ok(sortedItems);
             }
             catch (Exception ex)
@@ -206,16 +215,16 @@ namespace InventoryMaster.Controllers
         }
 
         [HttpPost(Name = "PostItems")]
-        public async Task<IActionResult> PostItem(string? Name, int Quantity, string? Type, double Price)  // добавление нового предмета в базу данных
+        public async Task<IActionResult> PostItem(string? Name, int Quantity, string? TypeName, double Price)  // добавление нового предмета в базу данных
         {
             try
             {
-                if (string.IsNullOrEmpty(Name) || Quantity <= 0 || string.IsNullOrEmpty(Type))
+                if (string.IsNullOrWhiteSpace(Name) || Quantity <= 0 || string.IsNullOrEmpty(TypeName) || Price <= 0)
                     return BadRequest("Невозможно создать предмет из-за неполных данных!");
 
                 Name = Name.Trim();
-                Type = Type.Trim();
-                var existingType = await _context.TypeOfItems.FirstOrDefaultAsync(t => t.Name == Type);
+                TypeName = TypeName.Trim();
+                TypeOfItems? existingType = await _context.TypeOfItems.FirstOrDefaultAsync(t => t.Name == TypeName);
 
                 if (existingType == null)
                     return BadRequest("Указанного типа предмета не существует в базе данных!");
@@ -250,7 +259,7 @@ namespace InventoryMaster.Controllers
         [HttpGet("SearchByName", Name = "SearchByName")]
         public async Task<IActionResult> SearchByName(string? Name) // поиск предмета по имени
         {
-            if (string.IsNullOrEmpty(Name))
+            if (string.IsNullOrWhiteSpace(Name))
                 return BadRequest("Value не может быть Null");
 
             try
@@ -278,10 +287,8 @@ namespace InventoryMaster.Controllers
 
 
         [HttpGet("SearchByPrice", Name = "SearchByPrice")]
-        public async Task<IActionResult> SearchByPrice(double? Price) // поиск предмета по цене
+        public async Task<IActionResult> SearchByPrice(double Price) // поиск предмета по цене
         {
-            if (Price == null)
-                return BadRequest("Заполните поле поиска!");
             try
             {
                 var items = await _context.Items.Include(item => item.Type).Where(i => i.Price == Price).ToListAsync();

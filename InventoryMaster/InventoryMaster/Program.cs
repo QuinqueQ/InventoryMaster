@@ -12,18 +12,18 @@ namespace InventoryMaster
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Пытался выводить логи в отдельный файл
+            //пытался сделать логгер
             Log.Logger = new LoggerConfiguration()
-            .WriteTo.File("logs/log.txt", rollingInterval: RollingInterval.Day, outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}")
-            .CreateLogger();
-
+               .WriteTo.Console(outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}") // Вывод в консоль
+               .WriteTo.File("logs/log.txt", rollingInterval: RollingInterval.Day, outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}") // Вывод в файл с тем же форматом
+               .CreateLogger();
 
             // Регистрация контекста базы данных
             builder.Services.AddDbContext<ItemsDBContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             // Регистрация сервиса
-            builder.Services.AddTransient<IItemService, ItemService>();
+            builder.Services.AddScoped<IItemService, ItemService>();
 
             // Добавление контроллеров
             builder.Services.AddControllers().AddJsonOptions(options =>
@@ -34,7 +34,6 @@ namespace InventoryMaster
             builder.Services.AddSwaggerGen();
 
             builder.Services.AddHostedService<ZeroQuantityItemsCleanupService>();//o
-
 
             Log.Information("Запись лога в текстовый файл");
 
@@ -48,7 +47,6 @@ namespace InventoryMaster
             }
 
             app.UseAuthorization();
-
 
             // Разрешение маршрутов для контроллеров
             app.MapControllers();

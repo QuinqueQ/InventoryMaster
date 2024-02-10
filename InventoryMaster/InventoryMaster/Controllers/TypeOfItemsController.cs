@@ -26,8 +26,11 @@ namespace InventoryMaster.Controllers
 
 
         [HttpPost(Name = "TypePost")]
-        public async Task<IActionResult> PostType(string TypeName) // создание нового типа предмета
+        public async Task<IActionResult> PostType(string? TypeName) // создание нового типа предмета
         {
+            if (string.IsNullOrWhiteSpace(TypeName))
+                return BadRequest("Заполните Название!");
+
             TypeName = TypeName.Trim();
             if (_context.TypeOfItems.Any(type => type.Name.ToLower() == TypeName.ToLower()))
             {
@@ -64,7 +67,7 @@ namespace InventoryMaster.Controllers
         {
             try
             {
-                var existingItem = await _context.TypeOfItems.FindAsync(id);
+                TypeOfItems? existingItem = await _context.TypeOfItems.FindAsync(id);
 
                 if (existingItem == null)
                     return BadRequest("Тип с таким идентификатором не найден!");

@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using InventoryMaster;
 
 namespace InventoryMaster.Services
 {
@@ -24,13 +23,12 @@ namespace InventoryMaster.Services
                 {
                     var dbContext = scope.ServiceProvider.GetRequiredService<ItemsDBContext>();
 
-                    var zeroQuantityItems = await dbContext.Items.Where(item => item.Quantity == 0).ToListAsync(cancellationToken: stoppingToken);
+                    var zeroQuantityItems = await dbContext.Items.Where(item => item.Quantity <= 0).ToListAsync(cancellationToken: stoppingToken);
                     if (zeroQuantityItems.Any())
                     {
                         dbContext.Items.RemoveRange(zeroQuantityItems);
                         await dbContext.SaveChangesAsync(stoppingToken);
-                        string message = $"{zeroQuantityItems.Count} Предметы с нулевым количеством были удалены из базы данных.";
-                        _logger.LogInformation(message);
+                        _logger.LogInformation ($"{zeroQuantityItems.Count} Предметы с нулевым количеством были удалены из базы данных.");
                     }
                     else
                     {
