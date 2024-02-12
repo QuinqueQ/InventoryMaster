@@ -11,8 +11,8 @@ namespace InventoryMaster.Controllers
     [Route("[controller]")]
     public class ItemsController : ControllerBase
     {
-        private readonly ItemsDBContext _context; // контекст бд
-        private readonly IItemService _itemService; //подключаю сервис для добавления предметов (он работает с колличеством предметов)
+        private readonly ItemsDBContext _context; // Контекст бд
+        private readonly IItemService _itemService; //Подключаю сервис для добавления предметов (он работает с колличеством предметов)
 
         public ItemsController(ItemsDBContext context, IItemService itemService)
         {
@@ -44,24 +44,20 @@ namespace InventoryMaster.Controllers
         {
             try
             {
-                if (itemUpdateDto == null || itemUpdateDto.Quantity <= 0 || itemUpdateDto.Price <= 0 || string.IsNullOrEmpty(itemUpdateDto.Name.Trim()))
+                if (itemUpdateDto == null || itemUpdateDto.Quantity <= 0 || itemUpdateDto.Price <= 0 || string.IsNullOrWhiteSpace(itemUpdateDto.Name.Trim()))
                 {
                     return BadRequest("Неверные данные для обновления предмета");
                 }
 
                 Item? existingItem = await _context.Items.FirstOrDefaultAsync(item => item.Id == id);
 
-
                 if (existingItem == null)
-                {
                     return NotFound($"Предмет с Id: {id} не найден");
-                }
 
                 TypeOfItems? type = await _context.TypeOfItems.FirstOrDefaultAsync(t => t.Name.Trim().ToLower() == itemUpdateDto.Type.Trim().ToLower());
                 if (type == null)
-                {
-                    return BadRequest($"Тип предмета '{itemUpdateDto.Type}' не существует");
-                }
+                    return NotFound($"Тип предмета '{itemUpdateDto.Type}' не существует");
+
 
                 existingItem.Name = itemUpdateDto.Name.Trim();
                 existingItem.Quantity = itemUpdateDto.Quantity;
@@ -70,7 +66,6 @@ namespace InventoryMaster.Controllers
                 existingItem.Price = itemUpdateDto.Price;
 
                 await _context.SaveChangesAsync();
-
                 return Ok(existingItem);
             }
             catch (Exception ex)
@@ -80,7 +75,7 @@ namespace InventoryMaster.Controllers
         }
 
 
-        [HttpDelete(Name = "DeleteItem")] // удаление предмета по айди с выбором колличества удаляемых предметов
+        [HttpDelete(Name = "DeleteItem")] // Удаление предмета по айди с выбором колличества удаляемых предметов
         public async Task<IActionResult> DeleteItem(Guid Id, int Quantity)
         {
             try
@@ -116,7 +111,7 @@ namespace InventoryMaster.Controllers
         }
 
         [HttpGet("SortByNameAscending", Name = "SortByNameAscending")]
-        public async Task<IActionResult> SortByNameAscending() // сортировка имени по алфавиту
+        public async Task<IActionResult> SortByNameAscending() // Сортировка имени по алфавиту
         {
             try
             {
@@ -131,7 +126,7 @@ namespace InventoryMaster.Controllers
         }
 
         [HttpGet("SortByNameDescending", Name = "SortByNameDescending")]
-        public async Task<IActionResult> SortByNameDescending() // сортировка имени по алфавиту(наоборот)
+        public async Task<IActionResult> SortByNameDescending() // Сортировка имени по алфавиту(наоборот)
         {
             try
             {
@@ -145,7 +140,7 @@ namespace InventoryMaster.Controllers
         }
 
         [HttpGet("SortByType", Name = "SortByType")]
-        public async Task<IActionResult> SortByType() //сортировка по типу предметов
+        public async Task<IActionResult> SortByType() //Сортировка по типу предметов
         {
             try
             {
@@ -159,7 +154,7 @@ namespace InventoryMaster.Controllers
         }
 
         [HttpGet("SortByPriceAscending", Name = "SortByPriceAscending")]
-        public async Task<IActionResult> SortByPriceAscending() //сортировка по типу цене (уменьшение)
+        public async Task<IActionResult> SortByPriceAscending() //Сортировка по типу цене (уменьшение)
         {
             try
             {
@@ -173,7 +168,7 @@ namespace InventoryMaster.Controllers
         }
 
         [HttpGet("SortByPriceDescending", Name = "SortByPriceDescending")]
-        public async Task<IActionResult> SortByPriceDescending() //сортировка по типу цене (повышения)
+        public async Task<IActionResult> SortByPriceDescending() //Сортировка по типу цене (повышения)
         {
             try
             {
@@ -187,7 +182,7 @@ namespace InventoryMaster.Controllers
         }
 
         [HttpGet("SortByQuantityAscending", Name = "SortByQuantityAscending")]
-        public async Task<IActionResult> SortByQuantityAscending() //сортировка по типу количеству (уменьшение)
+        public async Task<IActionResult> SortByQuantityAscending() //Сортировка по типу количеству (уменьшение)
         {
             try
             {
@@ -201,7 +196,7 @@ namespace InventoryMaster.Controllers
         }
 
         [HttpGet("SortByQuantityDescending", Name = "SortByQuantityDescending")]
-        public async Task<IActionResult> SortByQuantityDescending() //сортировка по типу количеству (повышение)
+        public async Task<IActionResult> SortByQuantityDescending() //Сортировка по типу количеству (повышение)
         {
             try
             {
@@ -215,7 +210,7 @@ namespace InventoryMaster.Controllers
         }
 
         [HttpPost(Name = "PostItems")]
-        public async Task<IActionResult> PostItem(string? Name, int Quantity, string? TypeName, double Price)  // добавление нового предмета в базу данных
+        public async Task<IActionResult> PostItem(string? Name, int Quantity, string? TypeName, double Price)  // Добавление нового предмета в базу данных
         {
             try
             {
@@ -243,7 +238,7 @@ namespace InventoryMaster.Controllers
 
 
         [HttpGet("SearchById", Name = "SearchById")]
-        public async Task<IActionResult> SearchById(Guid id) // поиск предмета по айди
+        public async Task<IActionResult> SearchById(Guid id) // Поиск предмета по айди
         {
             try
             {
@@ -257,7 +252,7 @@ namespace InventoryMaster.Controllers
         }
 
         [HttpGet("SearchByName", Name = "SearchByName")]
-        public async Task<IActionResult> SearchByName(string? Name) // поиск предмета по имени
+        public async Task<IActionResult> SearchByName(string? Name) // Поиск предмета по имени
         {
             if (string.IsNullOrWhiteSpace(Name))
                 return BadRequest("Value не может быть Null");
@@ -275,7 +270,7 @@ namespace InventoryMaster.Controllers
         }
 
         [HttpGet("SearchByType", Name = "SearchByType")]
-        public async Task<IActionResult> SearchByType(string type) // поиск предмета по типу
+        public async Task<IActionResult> SearchByType(string type) // Поиск предмета по типу
         {
             var items = await _context.Items
             .Include(item => item.Type)
@@ -287,7 +282,7 @@ namespace InventoryMaster.Controllers
 
 
         [HttpGet("SearchByPrice", Name = "SearchByPrice")]
-        public async Task<IActionResult> SearchByPrice(double Price) // поиск предмета по цене
+        public async Task<IActionResult> SearchByPrice(double Price) // Поиск предмета по цене
         {
             try
             {
@@ -302,7 +297,7 @@ namespace InventoryMaster.Controllers
 
 
         [HttpDelete("DeleteAllItems", Name = "DeleteAllItems")]
-        public async Task<IActionResult> DeleteAllItems() // удаления всех предметов из базы данных
+        public async Task<IActionResult> DeleteAllItems() // Удаления всех предметов из базы данных
         {
             try
             {

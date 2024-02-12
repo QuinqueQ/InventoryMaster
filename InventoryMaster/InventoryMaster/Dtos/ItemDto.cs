@@ -1,8 +1,6 @@
-﻿using InventoryMaster.Entities;
-
-namespace InventoryMaster.Dtos
+﻿namespace InventoryMaster.Dtos
 {
-    public class ItemDto // DTO класс, для обновления предмета, что то вроде шаблона без ненужных данных для заполнения
+    public class ItemDto // DTO класс, для обновления предмета, что-то вроде шаблона без ненужных полей для заполнения
     {
         public string Name { get; set; }
         public int Quantity { get; set; }

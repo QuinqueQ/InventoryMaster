@@ -12,12 +12,6 @@ namespace InventoryMaster
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            //пытался сделать логгер
-            Log.Logger = new LoggerConfiguration()
-               .WriteTo.Console(outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}") // Вывод в консоль
-               .WriteTo.File("logs/log.txt", rollingInterval: RollingInterval.Day, outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}") // Вывод в файл с тем же форматом
-               .CreateLogger();
-
             // Регистрация контекста базы данных
             builder.Services.AddDbContext<ItemsDBContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -41,14 +35,12 @@ namespace InventoryMaster
 
             if (app.Environment.IsDevelopment())
             {
-                // Включение Swagger UI в режиме разработки
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
 
             app.UseAuthorization();
 
-            // Разрешение маршрутов для контроллеров
             app.MapControllers();
 
             app.Run();

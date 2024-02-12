@@ -2,7 +2,7 @@
 
 namespace InventoryMaster.Interfaces
 {
-    public interface IItemService // интерфейс для сервиса
+    public interface IItemService // Интерфейс для сервиса TryAddItemToDB
     {
         Task<Item> TryAddItemToDBAsync(Item newItem);
     }

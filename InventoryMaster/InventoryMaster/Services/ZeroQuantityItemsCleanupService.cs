@@ -2,9 +2,9 @@
 
 namespace InventoryMaster.Services
 {
-    public class ZeroQuantityItemsCleanupService : BackgroundService // сервис проверяющий нет ли в базе предеметов с количеством 0
+    public class ZeroQuantityItemsCleanupService : BackgroundService // Сервис проверяющий нет ли в базе предеметов с количеством 0
     {
-        private readonly ILogger<ZeroQuantityItemsCleanupService> _logger;
+        private readonly ILogger<ZeroQuantityItemsCleanupService> _logger;  // Создал Логгер, который в консоли выводит информацию о работе этого сервиса
         private readonly IServiceScopeFactory _serviceScopeFactory;
 
         public ZeroQuantityItemsCleanupService(ILogger<ZeroQuantityItemsCleanupService> logger, IServiceScopeFactory serviceScopeFactory)

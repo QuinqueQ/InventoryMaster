@@ -16,7 +16,7 @@ namespace InventoryMaster.Controllers
         }
 
         [HttpGet(Name = "TypeGet")]
-        public async Task<IActionResult> Get()  // получаем все типы предметов
+        public async Task<IActionResult> Get()  // Получаем все типы предметов
         {
             if (!_context.TypeOfItems.Any())
                 return Ok("Ваша база пуста!");
@@ -26,7 +26,7 @@ namespace InventoryMaster.Controllers
 
 
         [HttpPost(Name = "TypePost")]
-        public async Task<IActionResult> PostType(string? TypeName) // создание нового типа предмета
+        public async Task<IActionResult> PostType(string? TypeName) // Создание нового типа предмета
         {
             if (string.IsNullOrWhiteSpace(TypeName))
                 return BadRequest("Заполните Название!");
@@ -43,7 +43,7 @@ namespace InventoryMaster.Controllers
         }
 
         [HttpDelete(Name = "TypeDelete")]
-        public async Task<IActionResult> DeleteTypeById(int typeId) // удаление предмета по айди
+        public async Task<IActionResult> DeleteTypeById(int typeId) // Удаление предмета по айди
         {
             try
             {
@@ -63,7 +63,7 @@ namespace InventoryMaster.Controllers
             }
         }
         [HttpPut(Name ="TypeUpdate")]
-        public async Task<IActionResult> UpdateType(int id, string? UpdTypeName)
+        public async Task<IActionResult> UpdateType(int id, string? UpdTypeName) //Изменение типа предмета по айди
         {
             try
             {

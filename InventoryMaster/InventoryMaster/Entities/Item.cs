@@ -2,7 +2,7 @@
 
 namespace InventoryMaster.Model
 {
-    public class Item
+    public class Item //Класс наших предметов
     {
         public Item() //конструктор для генерации уникального айдишника для каждого созданного предмета
         {
@@ -13,11 +13,10 @@ namespace InventoryMaster.Model
             Id = Guid.NewGuid();
             this.Name = Name;
             this.Quantity = Quantity;
-            this.TypeOfItemsId = Type.TypeId; // Устанавливаем внешний ключ
+            this.TypeOfItemsId = Type.TypeId;
             this.Type = Type;
             this.Price = Price;
         }
-
         public Guid Id { get; set; }
         public string? Name { get; set; }
         public int Quantity { get; set; }

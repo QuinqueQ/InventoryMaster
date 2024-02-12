@@ -1,8 +1,8 @@
 ﻿namespace InventoryMaster.Entities
 {
-    public class TypeOfItems
+    public class TypeOfItems // Класс для типов предмета
     {
-        public TypeOfItems(string Name) // класс для типов предмета
+        public TypeOfItems(string Name) 
         {
             this.Name = Name;
         }

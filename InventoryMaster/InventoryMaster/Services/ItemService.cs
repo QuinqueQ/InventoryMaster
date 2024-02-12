@@ -1,11 +1,10 @@
 ﻿using InventoryMaster.Interfaces;
 using InventoryMaster.Model;
 using Microsoft.EntityFrameworkCore;
-using Serilog;
 
 namespace InventoryMaster.Services
 {
-    public class ItemService : IItemService //сервис для создания предметов в бд
+    public class ItemService : IItemService //Сервис для добавления предмета в базу данных
     {
         private readonly ItemsDBContext _context;
         private readonly ILogger<ItemService> _logger;
@@ -32,16 +31,16 @@ namespace InventoryMaster.Services
                     await _context.SaveChangesAsync();
                     return existingItem;
                 }
-
                 // Если предмет не найден, добавляем его в базу данных
                 _context.Items.Add(newItem);
                 await _context.SaveChangesAsync();
+                _logger.LogInformation($"Предмет успешно добавлен в базу данных!");
                 return newItem;
             }
             catch (Exception ex)
             {
                 _logger.LogError($"Ошибка при добавлении предмета в базу данных: {ex.Message}");
-               return new Item();
+               return newItem;
             }
         }
     }
