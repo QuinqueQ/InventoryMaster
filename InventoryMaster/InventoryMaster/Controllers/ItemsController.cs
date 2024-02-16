@@ -23,92 +23,66 @@ namespace InventoryMaster.Controllers
         [HttpGet(Name = "GetItems")]
         public async Task<IActionResult> GetItems()
         {
-            if (!_context.Items.Include(item => item.Type).Any())
-                return Ok("Ваша база пуста!");
-            try
-            {
-                List<Item> items = await _context.Items.Include(i => i.Type).ToListAsync(); 
-                return Ok(items);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest($"Ошибка при получении списка предметов: {ex.Message}");
-            }
+            var items = await _itemService.GetItemsAsync();
+            if (items == null) return NoContent();
+            return Ok(items);
         }
 
         [HttpPut("UpdateItem", Name = "UpdateItem")]
         [ProducesResponseType(typeof(Item), 200)]
         [ProducesResponseType(404)]
         [ProducesResponseType(400)]
-        public async Task<IActionResult> UpdateItem(Guid id, [FromBody] ItemDto itemUpdateDto)
+        public async Task<IActionResult> Update(Guid id, [FromBody] ItemDto itemUpdateDto)
+        {
+           var UpdItem = await _itemService.UpdateItemAsync(id, itemUpdateDto);
+
+            if (UpdItem == null)
+                return NoContent();
+
+            return Ok(UpdItem);
+
+        }
+
+        [HttpPost(Name = "PostItems")]
+        public async Task<IActionResult> PostItem(string? Name, int Quantity, string? TypeName, double Price)  // Добавление нового предмета в базу данных
         {
             try
             {
-                if (itemUpdateDto == null || itemUpdateDto.Quantity <= 0 || itemUpdateDto.Price <= 0 || string.IsNullOrWhiteSpace(itemUpdateDto.Name.Trim()))
-                {
-                    return BadRequest("Неверные данные для обновления предмета");
-                }
+                if (string.IsNullOrWhiteSpace(Name) || Quantity <= 0 || string.IsNullOrEmpty(TypeName) || Price <= 0)
+                    return BadRequest("Невозможно создать предмет из-за неполных данных!");
 
-                Item? existingItem = await _context.Items.FirstOrDefaultAsync(item => item.Id == id);
+                Name = Name.Trim();
+                TypeName = TypeName.Trim();
+                TypeOfItems? existingType = await _context.TypeOfItems.FirstOrDefaultAsync(t => t.Name == TypeName);
 
-                if (existingItem == null)
-                    return NotFound($"Предмет с Id: {id} не найден");
+                if (existingType == null)
+                    return BadRequest("Указанного типа предмета не существует в базе данных!");
 
-                TypeOfItems? type = await _context.TypeOfItems.FirstOrDefaultAsync(t => t.Name.Trim().ToLower() == itemUpdateDto.Type.Trim().ToLower());
-                if (type == null)
-                    return NotFound($"Тип предмета '{itemUpdateDto.Type}' не существует");
+                Item newItem = new(Name, Quantity, existingType, Price);
 
-
-                existingItem.Name = itemUpdateDto.Name.Trim();
-                existingItem.Quantity = itemUpdateDto.Quantity;
-                existingItem.TypeOfItemsId = type.TypeId;
-                existingItem.Type = type;
-                existingItem.Price = itemUpdateDto.Price;
-
-                await _context.SaveChangesAsync();
-                return Ok(existingItem);
+                Item result = await _itemService.TryAddItemToDBAsync(newItem);
+                return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest($"Ошибка при обновлении предмета: {ex.Message}");
+                return BadRequest($"Ошибка при добавлении предмета: {ex.Message}");
             }
         }
-
 
         [HttpDelete(Name = "DeleteItem")] // Удаление предмета по айди с выбором колличества удаляемых предметов
         public async Task<IActionResult> DeleteItem(Guid Id, int Quantity)
         {
-            try
-            {
-                if (Quantity <= 0)
-                    return BadRequest("Неверно указано количество!");
+            var selectedItem = await _itemService.DeleteItemAsync(Id, Quantity);
 
-                Item? itemToDelete = await _context.Items.FirstOrDefaultAsync(i => i.Id == Id);
+            if (selectedItem == null)
+                return NotFound(); // Предмет не найден, возвращаем код 404
 
-                if (itemToDelete == null)
-                    return NotFound("Предмет не найден!");
+            if (Quantity >= selectedItem.Quantity)
+                return NoContent(); // Предмет успешно удален, возвращаем код 204
 
-                itemToDelete.Quantity -= Quantity;
-
-                if (itemToDelete.Quantity <= 0)
-                {
-                    _context.Items.Remove(itemToDelete);
-                    await _context.SaveChangesAsync();
-                    return Ok("Предмет успешно удален!");
-                }
-                else
-                {
-                    _context.Items.Update(itemToDelete);
-                    await _context.SaveChangesAsync();
-                }
-
-                return Ok(itemToDelete);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest($"Ошибка при удалении предмета: {ex.Message}");
-            }
+            return Ok(selectedItem); // Если удаление частичное, возвращаем предмет с обновленной информацией
         }
+
 
         [HttpGet("SortByNameAscending", Name = "SortByNameAscending")]
         public async Task<IActionResult> SortByNameAscending() // Сортировка имени по алфавиту
@@ -208,33 +182,6 @@ namespace InventoryMaster.Controllers
                 return BadRequest($"Ошибка при сортировке предметов по количеству (по убыванию): {ex.Message}");
             }
         }
-
-        [HttpPost(Name = "PostItems")]
-        public async Task<IActionResult> PostItem(string? Name, int Quantity, string? TypeName, double Price)  // Добавление нового предмета в базу данных
-        {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(Name) || Quantity <= 0 || string.IsNullOrEmpty(TypeName) || Price <= 0)
-                    return BadRequest("Невозможно создать предмет из-за неполных данных!");
-
-                Name = Name.Trim();
-                TypeName = TypeName.Trim();
-                TypeOfItems? existingType = await _context.TypeOfItems.FirstOrDefaultAsync(t => t.Name == TypeName);
-
-                if (existingType == null)
-                    return BadRequest("Указанного типа предмета не существует в базе данных!");
-
-                Item newItem = new (Name, Quantity, existingType, Price);
-
-                Item result = await _itemService.TryAddItemToDBAsync(newItem);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest($"Ошибка при добавлении предмета: {ex.Message}");
-            }
-        }
-
 
 
         [HttpGet("SearchById", Name = "SearchById")]

@@ -1,5 +1,8 @@
-﻿using InventoryMaster.Interfaces;
+﻿using InventoryMaster.Dtos;
+using InventoryMaster.Entities;
+using InventoryMaster.Interfaces;
 using InventoryMaster.Model;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace InventoryMaster.Services
@@ -40,8 +43,115 @@ namespace InventoryMaster.Services
             catch (Exception ex)
             {
                 _logger.LogError($"Ошибка при добавлении предмета в базу данных: {ex.Message}");
-               return newItem;
+                return newItem;
             }
         }
+
+        public async Task<Item?> UpdateItemAsync(Guid id, [FromBody] ItemDto itemUpdateDto)
+        {
+            try
+            {
+                if (itemUpdateDto == null || itemUpdateDto.Quantity <= 0 || itemUpdateDto.Price <= 0 || string.IsNullOrWhiteSpace(itemUpdateDto.Name.Trim()))
+                    throw new Exception();
+
+
+                Item? existingItem = await _context.Items.FirstOrDefaultAsync(item => item.Id == id)
+                ?? throw new NullReferenceException();
+                   
+
+                TypeOfItems? type = await _context.TypeOfItems.FirstOrDefaultAsync(t => t.Name.Trim().ToLower() == itemUpdateDto.Type.Trim().ToLower())
+                ?? throw new NullReferenceException();
+
+
+                existingItem.Name = itemUpdateDto.Name.Trim();
+                existingItem.Quantity = itemUpdateDto.Quantity;
+                existingItem.TypeOfItemsId = type.TypeId;
+                existingItem.Type = type;
+                existingItem.Price = itemUpdateDto.Price;
+
+                await _context.SaveChangesAsync();
+                return existingItem;
+            }
+            catch (NullReferenceException ex)
+            {
+                _logger.LogError(ex, " NullReferenceException occurred while updating item with ID: {ItemId}", id);
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, " Unexpected error occurred while updating item with ID: {ItemId}", id);
+                return null;
+            }
+        }
+
+        public async Task<List<Item>?> GetItemsAsync()
+        {
+            try
+            {
+                List<Item> items = await _context.Items.Include(i => i.Type).ToListAsync();
+
+                if (items == null || items.Count == 0)
+                    return new List<Item>();
+
+                else
+                    return items;
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Ошибка при получении списка предметов:", ex);
+                return null;
+            }
+        }
+
+
+
+        public async Task<Item?> DeleteItemAsync(Guid Id, int Quantity)
+        {
+            try
+            {
+                if (Quantity <= 0)
+                    throw new ArgumentOutOfRangeException(nameof(Quantity), "Количество должно быть положительным числом.");
+
+                Item? itemToDelete = await _context.Items.FirstOrDefaultAsync(i => i.Id == Id);
+
+                if (itemToDelete == null)
+                    return null;
+
+                if (Quantity >= itemToDelete.Quantity)
+                {
+                    _context.Items.Remove(itemToDelete);
+                }
+                else
+                {
+                    itemToDelete.Quantity -= Quantity;
+                    _context.Items.Update(itemToDelete);
+                }
+
+                await _context.SaveChangesAsync();
+                return itemToDelete;
+            }
+            catch (ArgumentOutOfRangeException ex)
+            {
+                _logger.LogError(ex, "Неправильно указано значение Quantity");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Ошибка при удалении предмета");
+                return null;
+            }
+        }
+
+
+
+
+
+
+
+
+
+
     }
+
 }
