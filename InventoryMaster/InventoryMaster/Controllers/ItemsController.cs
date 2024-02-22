@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using InventoryMaster.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using InventoryMaster.Dtos;
-using InventoryMaster.Entities;
 
 namespace InventoryMaster.Controllers
 {
@@ -23,8 +22,8 @@ namespace InventoryMaster.Controllers
         [HttpGet(Name = "GetItems")]
         public async Task<IActionResult> GetItems()
         {
-            var items = await _itemService.GetItemsAsync();
-            if (items == null) return NoContent();
+            List<Item>? items = await _itemService.GetItemsAsync();
+            if (items == null || items.Count == 0 ) return NoContent();
             return Ok(items);
         }
 
@@ -44,29 +43,13 @@ namespace InventoryMaster.Controllers
         }
 
         [HttpPost(Name = "PostItems")]
-        public async Task<IActionResult> PostItem(string? Name, int Quantity, string? TypeName, double Price)  // Добавление нового предмета в базу данных
+        public async Task<IActionResult> PostItem(ItemDto itemDto)  // Добавление нового предмета в базу данных
         {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(Name) || Quantity <= 0 || string.IsNullOrEmpty(TypeName) || Price <= 0)
-                    return BadRequest("Невозможно создать предмет из-за неполных данных!");
+            Item? newItem = await _itemService.PostItem(itemDto);
 
-                Name = Name.Trim();
-                TypeName = TypeName.Trim();
-                TypeOfItems? existingType = await _context.TypeOfItems.FirstOrDefaultAsync(t => t.Name == TypeName);
+            if (newItem == null) return BadRequest("Ошибка при создание предмета!");
 
-                if (existingType == null)
-                    return BadRequest("Указанного типа предмета не существует в базе данных!");
-
-                Item newItem = new(Name, Quantity, existingType, Price);
-
-                Item result = await _itemService.TryAddItemToDBAsync(newItem);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest($"Ошибка при добавлении предмета: {ex.Message}");
-            }
+            return Ok(newItem);
         }
 
         [HttpDelete(Name = "DeleteItem")] // Удаление предмета по айди с выбором колличества удаляемых предметов
@@ -246,16 +229,11 @@ namespace InventoryMaster.Controllers
         [HttpDelete("DeleteAllItems", Name = "DeleteAllItems")]
         public async Task<IActionResult> DeleteAllItems() // Удаления всех предметов из базы данных
         {
-            try
-            {
-                _context.Items.RemoveRange(_context.Items);
-                await _context.SaveChangesAsync();
+            bool IsItemsDeleted = await _itemService.DeleteAllItems();
+            if (IsItemsDeleted)
                 return NoContent();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest($"Ошибка при удалении всех предметов: {ex.Message}");
-            }
+
+            return BadRequest("произошла какая то ошибка");
         }
     }
 }

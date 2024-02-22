@@ -10,5 +10,7 @@ namespace InventoryMaster.Interfaces
         Task<Item?> UpdateItemAsync(Guid id, [FromBody] ItemDto itemUpdateDto);
         Task<List<Item>?> GetItemsAsync();
         Task<Item?> DeleteItemAsync(Guid Id, int Quantity);
+        Task<Item?> PostItem(ItemDto itemDto);
+        Task<bool> DeleteAllItems();
     }
 }

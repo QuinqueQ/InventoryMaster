@@ -2,9 +2,9 @@
 using InventoryMaster.Entities;
 using InventoryMaster.Interfaces;
 using InventoryMaster.Model;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-
 namespace InventoryMaster.Services
 {
     public class ItemService : IItemService //Сервис для добавления предмета в базу данных
@@ -59,7 +59,7 @@ namespace InventoryMaster.Services
                 ?? throw new NullReferenceException();
                    
 
-                TypeOfItems? type = await _context.TypeOfItems.FirstOrDefaultAsync(t => t.Name.Trim().ToLower() == itemUpdateDto.Type.Trim().ToLower())
+                TypeOfItems? type = await _context.TypeOfItems.FirstOrDefaultAsync(t => t.Name.Trim().ToLower() == itemUpdateDto.TypeName.Trim().ToLower())
                 ?? throw new NullReferenceException();
 
 
@@ -143,6 +143,48 @@ namespace InventoryMaster.Services
             }
         }
 
+
+
+        public async Task<Item?> PostItem(ItemDto itemDto)  // Добавление нового предмета в базу данных
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(itemDto.Name) || itemDto.Quantity <= 0 || string.IsNullOrEmpty(itemDto.TypeName) || itemDto.Price <= 0 || itemDto.Name == "string")
+                    return null;
+
+                itemDto.Name = itemDto.Name.Trim();
+                itemDto.TypeName = itemDto.TypeName.Trim();
+                TypeOfItems? existingType = await _context.TypeOfItems.FirstOrDefaultAsync(t => t.Name == itemDto.TypeName);
+
+                if (existingType == null)
+                   return null;
+
+                Item newItem = new(itemDto.Name, itemDto.Quantity, existingType, itemDto.Price);
+
+                Item result = await TryAddItemToDBAsync(newItem);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Ошибка при добавлении предмета" ,ex.Message);
+                return null;
+            }
+        }
+
+        public async Task<bool> DeleteAllItems() // Удаления всех предметов из базы данных
+        {
+            try
+            {
+                _context.Items.RemoveRange(_context.Items);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Ошибка при удалении всех предметов:" ,ex.Message);
+                return false;
+            }
+        }
 
 
 
