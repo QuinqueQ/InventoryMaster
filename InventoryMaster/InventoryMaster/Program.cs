@@ -18,6 +18,7 @@ namespace InventoryMaster
 
             // Регистрация сервиса
             builder.Services.AddScoped<IItemService, ItemService>();
+            builder.Services.AddScoped<ITypeOfItemService, TypeOfItemService>();
 
             // Добавление контроллеров
             builder.Services.AddControllers().AddJsonOptions(options =>
@@ -27,7 +28,7 @@ namespace InventoryMaster
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-            builder.Services.AddHostedService<ZeroQuantityItemsCleanupService>();//o
+            builder.Services.AddHostedService<ZeroQuantityItemsCleanupService>();
 
             Log.Information("Запись лога в текстовый файл");
 

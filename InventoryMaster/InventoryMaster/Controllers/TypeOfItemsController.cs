@@ -1,6 +1,5 @@
-﻿using InventoryMaster.Entities;
+﻿using InventoryMaster.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace InventoryMaster.Controllers
 {
@@ -8,84 +7,39 @@ namespace InventoryMaster.Controllers
     [Route("[controller]")]
     public class TypeOfItemsController : ControllerBase
     {
-        private readonly ItemsDBContext _context;
+        private readonly ITypeOfItemService _typeOfItemService; // сервис для работы с предметами типов из базы данных
 
-        public TypeOfItemsController(ItemsDBContext context)
+        public TypeOfItemsController(ITypeOfItemService typeOfItemService)
         {
-            _context = context;
+            _typeOfItemService = typeOfItemService;
         }
 
         [HttpGet(Name = "TypeGet")]
         public async Task<IActionResult> Get()  // Получаем все типы предметов
         {
-            if (!_context.TypeOfItems.Any())
-                return Ok("Ваша база пуста!");
-
-            return Ok(await _context.TypeOfItems.ToListAsync());
+           var typeOfItems = await _typeOfItemService.GetTypeOfItemsAsync();
+            return typeOfItems == null ? NoContent() : Ok(typeOfItems);
         }
 
 
         [HttpPost(Name = "TypePost")]
         public async Task<IActionResult> PostType(string? TypeName) // Создание нового типа предмета
         {
-            if (string.IsNullOrWhiteSpace(TypeName))
-                return BadRequest("Заполните Название!");
-
-            TypeName = TypeName.Trim();
-            if (_context.TypeOfItems.Any(type => type.Name.ToLower() == TypeName.ToLower()))
-            {
-                return BadRequest("Такой тип уже существует!");
-            }
-            TypeOfItems newType = new(TypeName);
-            _context.TypeOfItems.Add(newType);
-            await _context.SaveChangesAsync();
-            return Ok(newType);
+            var typeOfItems = await _typeOfItemService.PostTypeAsync(TypeName);
+            return typeOfItems == null ? NoContent() : Ok(typeOfItems);
         }
 
         [HttpDelete(Name = "TypeDelete")]
         public async Task<IActionResult> DeleteTypeById(int typeId) // Удаление предмета по айди
         {
-            try
-            {
-                TypeOfItems? typeToDelete = await _context.TypeOfItems.FindAsync(typeId);
-
-                if (typeToDelete == null)
-                    return NotFound("Тип предмета не найден!");
-
-                _context.TypeOfItems.Remove(typeToDelete);
-                await _context.SaveChangesAsync();
-
-                return Ok("Тип предмета успешно удален!");
-            }
-            catch (Exception ex)
-            {
-                return BadRequest($"Ошибка при удалении типа предмета: {ex.Message}");
-            }
+           var ItemToDelete = await _typeOfItemService.DeleteTypeByIdAsync(typeId);
+            return ItemToDelete == null ? NoContent() : Ok("Предмет успешно удален!");
         }
         [HttpPut(Name ="TypeUpdate")]
         public async Task<IActionResult> UpdateType(int id, string? UpdTypeName) //Изменение типа предмета по айди
         {
-            try
-            {
-                TypeOfItems? existingItem = await _context.TypeOfItems.FindAsync(id);
-
-                if (existingItem == null)
-                    return BadRequest("Тип с таким идентификатором не найден!");
-
-                if (string.IsNullOrWhiteSpace(UpdTypeName))
-                    return BadRequest("Название типа не может быть пустым или содержать только пробелы!");
-
-                UpdTypeName = UpdTypeName.Trim();
-                existingItem.Name = UpdTypeName;
-
-                await _context.SaveChangesAsync();
-
-                return Ok(existingItem);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest($"Ошибка при обновлении типа: {ex.Message}");
-            }
+           var updItem = await _typeOfItemService.UpdateTypeAsync(id, UpdTypeName);
+            return updItem == null ? NoContent() : Ok(updItem);
         }
     }
 }

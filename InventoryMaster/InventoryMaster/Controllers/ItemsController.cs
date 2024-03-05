@@ -1,8 +1,8 @@
 ﻿using InventoryMaster.Model;
 using Microsoft.AspNetCore.Mvc;
 using InventoryMaster.Interfaces;
-using Microsoft.EntityFrameworkCore;
 using InventoryMaster.Dtos;
+using InventoryMaster.Entities;
 
 namespace InventoryMaster.Controllers
 {
@@ -10,12 +10,10 @@ namespace InventoryMaster.Controllers
     [Route("[controller]")]
     public class ItemsController : ControllerBase
     {
-        private readonly ItemsDBContext _context; // Контекст бд
-        private readonly IItemService _itemService; //Подключаю сервис для добавления предметов (он работает с колличеством предметов)
+        private readonly IItemService _itemService; //Сервис для работы с Предметами в базе данных
 
-        public ItemsController(ItemsDBContext context, IItemService itemService)
+        public ItemsController(IItemService itemService)
         {
-            _context = context;
             _itemService = itemService;
         }
 
@@ -45,7 +43,7 @@ namespace InventoryMaster.Controllers
         [HttpPost(Name = "PostItems")]
         public async Task<IActionResult> PostItem(ItemDto itemDto)  // Добавление нового предмета в базу данных
         {
-            Item? newItem = await _itemService.PostItem(itemDto);
+            Item? newItem = await _itemService.PostItemAsync(itemDto);
 
             if (newItem == null) return BadRequest("Ошибка при создание предмета!");
 
@@ -70,166 +68,110 @@ namespace InventoryMaster.Controllers
         [HttpGet("SortByNameAscending", Name = "SortByNameAscending")]
         public async Task<IActionResult> SortByNameAscending() // Сортировка имени по алфавиту
         {
-            try
-            {
-                List<Item> sortedItems = await _context.Items.Include(item => item.Type).OrderBy(item => item.Name).ToListAsync();
-
-                return Ok(sortedItems);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest($"Ошибка при сортировке предметов по имени (по возрастанию): {ex.Message}");
-            }
+            List<Item> SortedList = await _itemService.SortAsync(ItemFields.Name, false);
+            if (SortedList.Count == 0)
+                return NoContent();
+            return Ok(SortedList);
         }
 
         [HttpGet("SortByNameDescending", Name = "SortByNameDescending")]
         public async Task<IActionResult> SortByNameDescending() // Сортировка имени по алфавиту(наоборот)
         {
-            try
-            {
-                List<Item> sortedItems = await _context.Items.Include(item => item.Type).OrderByDescending(item => item.Name).ToListAsync();
-                return Ok(sortedItems);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest($"Ошибка при сортировке предметов по имени (по убыванию): {ex.Message}");
-            }
+            List<Item> SortedList = await _itemService.SortAsync(ItemFields.Name, true);
+            if (SortedList.Count == 0)
+                return NoContent();
+            return Ok(SortedList);
         }
 
         [HttpGet("SortByType", Name = "SortByType")]
         public async Task<IActionResult> SortByType() //Сортировка по типу предметов
         {
-            try
-            {
-                List<Item> sortedItems = await _context.Items.Include(item => item.Type).OrderBy(item => item.Type).ToListAsync();
-                return Ok(sortedItems);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest($"Ошибка при сортировке предметов по типу: {ex.Message}");
-            }
+            List<Item> SortedList = await _itemService.SortAsync(ItemFields.Type, false);
+            if (SortedList.Count == 0)
+                return NoContent();
+            return Ok(SortedList);
         }
 
         [HttpGet("SortByPriceAscending", Name = "SortByPriceAscending")]
         public async Task<IActionResult> SortByPriceAscending() //Сортировка по типу цене (уменьшение)
         {
-            try
-            {
-                List<Item> sortedItems = await _context.Items.Include(item => item.Type).OrderBy(item => item.Price).ToListAsync();
-                return Ok(sortedItems);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest($"Ошибка при сортировке предметов по цене (по возрастанию): {ex.Message}");
-            }
+            List<Item> SortedList = await _itemService.SortAsync(ItemFields.Price, false);
+            if (SortedList.Count == 0)
+                return NoContent();
+            return Ok(SortedList);
         }
 
         [HttpGet("SortByPriceDescending", Name = "SortByPriceDescending")]
         public async Task<IActionResult> SortByPriceDescending() //Сортировка по типу цене (повышения)
         {
-            try
-            {
-                List<Item> sortedItems = await _context.Items.Include(item => item.Type).OrderByDescending(item => item.Price).ToListAsync();
-                return Ok(sortedItems);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest($"Ошибка при сортировке предметов по цене (по убыванию): {ex.Message}");
-            }
+            List<Item> SortedList = await _itemService.SortAsync(ItemFields.Price, true);
+            if (SortedList.Count == 0)
+                return NoContent();
+            return Ok(SortedList);
         }
 
         [HttpGet("SortByQuantityAscending", Name = "SortByQuantityAscending")]
         public async Task<IActionResult> SortByQuantityAscending() //Сортировка по типу количеству (уменьшение)
         {
-            try
-            {
-                List<Item> sortedItems = await _context.Items.Include(item => item.Type).OrderBy(item => item.Quantity).ToListAsync();
-                return Ok(sortedItems);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest($"Ошибка при сортировке предметов по количеству (по возрастанию): {ex.Message}");
-            }
+            List<Item> SortedList = await _itemService.SortAsync(ItemFields.Quantity, false);
+            if (SortedList.Count == 0)
+                return NoContent();
+            return Ok(SortedList);
         }
 
         [HttpGet("SortByQuantityDescending", Name = "SortByQuantityDescending")]
         public async Task<IActionResult> SortByQuantityDescending() //Сортировка по типу количеству (повышение)
         {
-            try
-            {
-                List<Item> sortedItems = await _context.Items.Include(item => item.Type).OrderByDescending(item => item.Quantity).ToListAsync();
-                return Ok(sortedItems);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest($"Ошибка при сортировке предметов по количеству (по убыванию): {ex.Message}");
-            }
+            List<Item> SortedList = await _itemService.SortAsync(ItemFields.Quantity, true);
+            if (SortedList.Count == 0)
+                return NoContent();
+            return Ok(SortedList);
         }
 
 
         [HttpGet("SearchById", Name = "SearchById")]
-        public async Task<IActionResult> SearchById(Guid id) // Поиск предмета по айди
+        public async Task<IActionResult> SearchById(Guid Id) // Поиск предмета по айди
         {
-            try
-            {
-                var item = await _context.Items.Include(item => item.Type).FirstOrDefaultAsync(i => i.Id == id);
-                return item != null ? Ok(item) : NotFound("Предмет не найден!");
-            }
-            catch (Exception ex)
-            {
-                return BadRequest("Произошла ошибка " + ex.Message);
-            }
+          List<Item> Items = await _itemService.SerchAsync(Id, ItemFields.Id);
+            if (Items.Count == 0)
+                return NoContent();
+
+            return Ok(Items);
         }
 
         [HttpGet("SearchByName", Name = "SearchByName")]
         public async Task<IActionResult> SearchByName(string? Name) // Поиск предмета по имени
         {
-            if (string.IsNullOrWhiteSpace(Name))
-                return BadRequest("Value не может быть Null");
-
-            try
-            {
-                Name = Name.ToLower().Trim();
-                var items = await _context.Items.Include(item => item.Type).Where(i => i.Name != null && i.Name.ToLower() == Name).ToListAsync();
-                return items.Count > 0 ? Ok(items) : NotFound($"Предмет с именем '{Name}' не найден.");
-            }
-            catch (Exception ex)
-            {
-                return BadRequest("Произошла ошибка " + ex.Message);
-            }
+           List<Item> Items = await _itemService.SerchAsync(Name, ItemFields.Name);
+            if (Items.Count == 0)
+                return NoContent();
+            return Ok(Items);
         }
 
         [HttpGet("SearchByType", Name = "SearchByType")]
-        public async Task<IActionResult> SearchByType(string type) // Поиск предмета по типу
+        public async Task<IActionResult> SearchByType(string Type) // Поиск предмета по типу
         {
-            var items = await _context.Items
-            .Include(item => item.Type)
-            .Where(item => item.Type.Name == type)
-            .ToListAsync();
-
-            return items.Any() ? Ok(items) : BadRequest("База не содержит предметов с данным типом!");
+            List<Item> Items = await _itemService.SerchAsync(Type, ItemFields.Type);
+            if (Items.Count == 0)
+                return NoContent();
+            return Ok(Items);
         }
 
 
         [HttpGet("SearchByPrice", Name = "SearchByPrice")]
         public async Task<IActionResult> SearchByPrice(double Price) // Поиск предмета по цене
         {
-            try
-            {
-                var items = await _context.Items.Include(item => item.Type).Where(i => i.Price == Price).ToListAsync();
-                return items.Count > 0 ? Ok(items) : BadRequest("База не содержит предметов с данным типом!");
-            }
-            catch (Exception ex)
-            {
-                return BadRequest("Произошла ошибка " + ex.Message);
-            }
+            List<Item> Items = await _itemService.SerchAsync(Price, ItemFields.Price);
+            if (Items.Count == 0)
+                return NoContent();
+            return Ok(Items);
         }
 
 
         [HttpDelete("DeleteAllItems", Name = "DeleteAllItems")]
         public async Task<IActionResult> DeleteAllItems() // Удаления всех предметов из базы данных
         {
-            bool IsItemsDeleted = await _itemService.DeleteAllItems();
+            bool IsItemsDeleted = await _itemService.DeleteAllItemsAsync();
             if (IsItemsDeleted)
                 return NoContent();
 

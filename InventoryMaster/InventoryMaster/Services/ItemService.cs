@@ -2,7 +2,6 @@
 using InventoryMaster.Entities;
 using InventoryMaster.Interfaces;
 using InventoryMaster.Model;
-using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 namespace InventoryMaster.Services
@@ -145,7 +144,7 @@ namespace InventoryMaster.Services
 
 
 
-        public async Task<Item?> PostItem(ItemDto itemDto)  // Добавление нового предмета в базу данных
+        public async Task<Item?> PostItemAsync(ItemDto itemDto)  // Добавление нового предмета в базу данных
         {
             try
             {
@@ -171,7 +170,7 @@ namespace InventoryMaster.Services
             }
         }
 
-        public async Task<bool> DeleteAllItems() // Удаления всех предметов из базы данных
+        public async Task<bool> DeleteAllItemsAsync() // Удаления всех предметов из базы данных
         {
             try
             {
@@ -186,14 +185,105 @@ namespace InventoryMaster.Services
             }
         }
 
+        public async Task<List<Item>> SerchAsync<T> (T Value, ItemFields SearchType)
+        {
+            List<Item> ItemList = new();
+            switch (SearchType)
+            {
+                case ItemFields.Id:
+                    if (Value is Guid id)
+                        ItemList = await _context.Items.Include(item => item.Type).Where(i => i.Id == id).ToListAsync();
+                        return ItemList;
+                case ItemFields.Name:
+                    {
+                        if(Value is string name)
+                        ItemList = await _context.Items.Include(item => item.Type).Where(i => i.Name.ToLower() == name.ToLower().Trim()).ToListAsync();
+                        return ItemList;
+                    }
+                case ItemFields.Quantity:
+                    {
+                        if (Value is int quantity)
+                            ItemList = await _context.Items.Include(item => item.Type).Where(i => i.Quantity == quantity).ToListAsync();
+                        return ItemList;
+                    }
+                case ItemFields.Type:
+                    {
+                        if (Value is string type)
+                            ItemList = await _context.Items.Include(item => item.Type).Where(item => item.Type.Name.ToLower() == type.ToLower().Trim()).ToListAsync();
+                            return ItemList;
+                    }
+                case ItemFields.Price:
+                    {
+                        if (Value is double price)
+                            ItemList = await _context.Items.Include(item => item.Type).Where(i => i.Price == price).ToListAsync();
+                        return ItemList;
+                    }
+                default: return ItemList;
+            }
+        }
 
 
+        public async Task<List<Item>> SortAsync (ItemFields FieldForSort, bool Descending)
+        {
+            List<Item> SortedList = new();
 
+            switch (FieldForSort)
+            {
+                case ItemFields.Id:
+                {
+                    if (!Descending)
+                        SortedList = await _context.Items.Include(item => item.Type).OrderBy(item => item.Id).ToListAsync();
 
+                    else if (Descending)
+                        SortedList = await _context.Items.Include(item => item.Type).OrderByDescending(item => item.Id).ToListAsync();
 
+                        return SortedList;
+                }
+                case ItemFields.Name:
+                    {
+                        if (!Descending)
+                        SortedList = await _context.Items.Include(item => item.Type).OrderBy(item => item.Name).ToListAsync();
 
+                        else if (Descending)
+                        SortedList = await _context.Items.Include(item => item.Type).OrderByDescending(item => item.Name).ToListAsync();
 
+                        return SortedList;
+                    }
+                case ItemFields.Quantity:
+                    {
+                        if (!Descending)
+                        SortedList = await _context.Items.Include(item => item.Type).OrderBy(item => item.Quantity).ToListAsync();
 
+                        else if (Descending)
+                        SortedList = await _context.Items.Include(item => item.Type).OrderByDescending(item => item.Quantity).ToListAsync();
+
+                        return SortedList;
+                    }
+                case ItemFields.Type:
+                    {
+                        if (!Descending)
+                        SortedList = await _context.Items.Include(item => item.Type).OrderBy(item => item.Type).ToListAsync();
+
+                        else if (Descending)
+                        SortedList = await _context.Items.Include(item => item.Type).OrderByDescending(item => item.Type).ToListAsync();
+
+                        return SortedList;
+                    }
+                case ItemFields.Price:
+                    {
+                        if (!Descending)
+                        SortedList = await _context.Items.Include(item => item.Type).OrderBy(item => item.Price).ToListAsync();
+                        
+                        else if (Descending)
+                        SortedList = await _context.Items.Include(item => item.Type).OrderByDescending(item => item.Price).ToListAsync();
+
+                        return SortedList;
+                    }
+            }
+            return SortedList;
+        }
     }
-
 }
+
+
+

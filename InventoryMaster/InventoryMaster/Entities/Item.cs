@@ -18,7 +18,7 @@ namespace InventoryMaster.Model
             this.Price = Price;
         }
         public Guid Id { get; set; }
-        public string? Name { get; set; }
+        public string Name { get; set; }
         public int Quantity { get; set; }
         public int TypeOfItemsId { get; set; } // Внешний ключ
         public TypeOfItems Type { get; set; } 
