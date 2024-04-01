@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace InventoryMaster.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/type-of-items")]
     public class TypeOfItemsController : ControllerBase
     {
         private readonly ITypeOfItemService _typeOfItemService; // сервис для работы с предметами типов из базы данных
@@ -14,7 +14,7 @@ namespace InventoryMaster.Controllers
             _typeOfItemService = typeOfItemService;
         }
 
-        [HttpGet(Name = "TypeGet")]
+        [HttpGet]
         public async Task<IActionResult> Get()  // Получаем все типы предметов
         {
            var typeOfItems = await _typeOfItemService.GetTypeOfItemsAsync();
@@ -22,20 +22,20 @@ namespace InventoryMaster.Controllers
         }
 
 
-        [HttpPost(Name = "TypePost")]
+        [HttpPost]
         public async Task<IActionResult> PostType(string? TypeName) // Создание нового типа предмета
         {
             var typeOfItems = await _typeOfItemService.PostTypeAsync(TypeName);
             return typeOfItems == null ? NoContent() : Ok(typeOfItems);
         }
 
-        [HttpDelete(Name = "TypeDelete")]
-        public async Task<IActionResult> DeleteTypeById(int typeId) // Удаление предмета по айди
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteTypeById(int id) // Удаление предмета по айди
         {
-           var ItemToDelete = await _typeOfItemService.DeleteTypeByIdAsync(typeId);
+           var ItemToDelete = await _typeOfItemService.DeleteTypeByIdAsync(id);
             return ItemToDelete == null ? NoContent() : Ok("Предмет успешно удален!");
         }
-        [HttpPut(Name ="TypeUpdate")]
+        [HttpPut]
         public async Task<IActionResult> UpdateType(int id, string? UpdTypeName) //Изменение типа предмета по айди
         {
            var updItem = await _typeOfItemService.UpdateTypeAsync(id, UpdTypeName);

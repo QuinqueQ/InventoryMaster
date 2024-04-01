@@ -7,7 +7,7 @@ using InventoryMaster.Entities;
 namespace InventoryMaster.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/items")]
     public class ItemsController : ControllerBase
     {
         private readonly IItemService _itemService; //Сервис для работы с Предметами в базе данных
@@ -17,21 +17,21 @@ namespace InventoryMaster.Controllers
             _itemService = itemService;
         }
 
-        [HttpGet(Name = "GetItems")]
+        [HttpGet]
         public async Task<IActionResult> GetItems()
         {
             List<Item>? items = await _itemService.GetItemsAsync();
-            if (items == null || items.Count == 0 ) return NoContent();
+            if (items == null || items.Count == 0) return NoContent();
             return Ok(items);
         }
 
-        [HttpPut("UpdateItem", Name = "UpdateItem")]
+        [HttpPut("update")]
         [ProducesResponseType(typeof(Item), 200)]
         [ProducesResponseType(404)]
         [ProducesResponseType(400)]
         public async Task<IActionResult> Update(Guid id, [FromBody] ItemDto itemUpdateDto)
         {
-           var UpdItem = await _itemService.UpdateItemAsync(id, itemUpdateDto);
+            var UpdItem = await _itemService.UpdateItemAsync(id, itemUpdateDto);
 
             if (UpdItem == null)
                 return NoContent();
@@ -40,7 +40,7 @@ namespace InventoryMaster.Controllers
 
         }
 
-        [HttpPost(Name = "PostItems")]
+        [HttpPost]
         public async Task<IActionResult> PostItem(ItemDto itemDto)  // Добавление нового предмета в базу данных
         {
             Item? newItem = await _itemService.PostItemAsync(itemDto);
@@ -50,10 +50,10 @@ namespace InventoryMaster.Controllers
             return Ok(newItem);
         }
 
-        [HttpDelete(Name = "DeleteItem")] // Удаление предмета по айди с выбором колличества удаляемых предметов
-        public async Task<IActionResult> DeleteItem(Guid Id, int Quantity)
+        [HttpDelete("{id}")] // Удаление предмета по айди с выбором колличества удаляемых предметов
+        public async Task<IActionResult> DeleteItem(Guid id, int Quantity)
         {
-            var selectedItem = await _itemService.DeleteItemAsync(Id, Quantity);
+            var selectedItem = await _itemService.DeleteItemAsync(id, Quantity);
 
             if (selectedItem == null)
                 return NotFound(); // Предмет не найден, возвращаем код 404
@@ -63,9 +63,46 @@ namespace InventoryMaster.Controllers
 
             return Ok(selectedItem); // Если удаление частичное, возвращаем предмет с обновленной информацией
         }
+        [HttpGet("{id}")]
+        public async Task<IActionResult> SearchById(Guid id) // Поиск предмета по айди
+        {
+            List<Item> Items = await _itemService.SerchAsync(id, ItemFields.Id);
+            if (Items.Count == 0)
+                return NoContent();
+
+            return Ok(Items);
+        }
+
+        [HttpGet("{name}")]
+        public async Task<IActionResult> SearchByName(string? name) // Поиск предмета по имени
+        {
+            List<Item> Items = await _itemService.SerchAsync(name, ItemFields.Name);
+            if (Items.Count == 0)
+                return NoContent();
+            return Ok(Items);
+        }
+
+        [HttpGet("{type}")]
+        public async Task<IActionResult> SearchByType(string type) // Поиск предмета по типу
+        {
+            List<Item> Items = await _itemService.SerchAsync(type, ItemFields.Type);
+            if (Items.Count == 0)
+                return NoContent();
+            return Ok(Items);
+        }
 
 
-        [HttpGet("SortByNameAscending", Name = "SortByNameAscending")]
+        [HttpGet("{price}")]
+        public async Task<IActionResult> SearchByPrice(double price) // Поиск предмета по цене
+        {
+            List<Item> Items = await _itemService.SerchAsync(price, ItemFields.Price);
+            if (Items.Count == 0)
+                return NoContent();
+            return Ok(Items);
+        }
+
+
+        [HttpGet("sort-by-name-ascending")]
         public async Task<IActionResult> SortByNameAscending() // Сортировка имени по алфавиту
         {
             List<Item> SortedList = await _itemService.SortAsync(ItemFields.Name, false);
@@ -74,7 +111,7 @@ namespace InventoryMaster.Controllers
             return Ok(SortedList);
         }
 
-        [HttpGet("SortByNameDescending", Name = "SortByNameDescending")]
+        [HttpGet("sort-by-name-descending")]
         public async Task<IActionResult> SortByNameDescending() // Сортировка имени по алфавиту(наоборот)
         {
             List<Item> SortedList = await _itemService.SortAsync(ItemFields.Name, true);
@@ -83,7 +120,7 @@ namespace InventoryMaster.Controllers
             return Ok(SortedList);
         }
 
-        [HttpGet("SortByType", Name = "SortByType")]
+        [HttpGet("sort-by-type")]
         public async Task<IActionResult> SortByType() //Сортировка по типу предметов
         {
             List<Item> SortedList = await _itemService.SortAsync(ItemFields.Type, false);
@@ -92,7 +129,7 @@ namespace InventoryMaster.Controllers
             return Ok(SortedList);
         }
 
-        [HttpGet("SortByPriceAscending", Name = "SortByPriceAscending")]
+        [HttpGet("sort-by-price-ascending")]
         public async Task<IActionResult> SortByPriceAscending() //Сортировка по типу цене (уменьшение)
         {
             List<Item> SortedList = await _itemService.SortAsync(ItemFields.Price, false);
@@ -101,7 +138,7 @@ namespace InventoryMaster.Controllers
             return Ok(SortedList);
         }
 
-        [HttpGet("SortByPriceDescending", Name = "SortByPriceDescending")]
+        [HttpGet("sort-by-price-descending")]
         public async Task<IActionResult> SortByPriceDescending() //Сортировка по типу цене (повышения)
         {
             List<Item> SortedList = await _itemService.SortAsync(ItemFields.Price, true);
@@ -110,7 +147,7 @@ namespace InventoryMaster.Controllers
             return Ok(SortedList);
         }
 
-        [HttpGet("SortByQuantityAscending", Name = "SortByQuantityAscending")]
+        [HttpGet("sort-by-quantity-ascending")]
         public async Task<IActionResult> SortByQuantityAscending() //Сортировка по типу количеству (уменьшение)
         {
             List<Item> SortedList = await _itemService.SortAsync(ItemFields.Quantity, false);
@@ -119,7 +156,7 @@ namespace InventoryMaster.Controllers
             return Ok(SortedList);
         }
 
-        [HttpGet("SortByQuantityDescending", Name = "SortByQuantityDescending")]
+        [HttpGet("sort-by-quantity-descending")]
         public async Task<IActionResult> SortByQuantityDescending() //Сортировка по типу количеству (повышение)
         {
             List<Item> SortedList = await _itemService.SortAsync(ItemFields.Quantity, true);
@@ -128,47 +165,7 @@ namespace InventoryMaster.Controllers
             return Ok(SortedList);
         }
 
-
-        [HttpGet("SearchById", Name = "SearchById")]
-        public async Task<IActionResult> SearchById(Guid Id) // Поиск предмета по айди
-        {
-          List<Item> Items = await _itemService.SerchAsync(Id, ItemFields.Id);
-            if (Items.Count == 0)
-                return NoContent();
-
-            return Ok(Items);
-        }
-
-        [HttpGet("SearchByName", Name = "SearchByName")]
-        public async Task<IActionResult> SearchByName(string? Name) // Поиск предмета по имени
-        {
-           List<Item> Items = await _itemService.SerchAsync(Name, ItemFields.Name);
-            if (Items.Count == 0)
-                return NoContent();
-            return Ok(Items);
-        }
-
-        [HttpGet("SearchByType", Name = "SearchByType")]
-        public async Task<IActionResult> SearchByType(string Type) // Поиск предмета по типу
-        {
-            List<Item> Items = await _itemService.SerchAsync(Type, ItemFields.Type);
-            if (Items.Count == 0)
-                return NoContent();
-            return Ok(Items);
-        }
-
-
-        [HttpGet("SearchByPrice", Name = "SearchByPrice")]
-        public async Task<IActionResult> SearchByPrice(double Price) // Поиск предмета по цене
-        {
-            List<Item> Items = await _itemService.SerchAsync(Price, ItemFields.Price);
-            if (Items.Count == 0)
-                return NoContent();
-            return Ok(Items);
-        }
-
-
-        [HttpDelete("DeleteAllItems", Name = "DeleteAllItems")]
+        [HttpDelete]
         public async Task<IActionResult> DeleteAllItems() // Удаления всех предметов из базы данных
         {
             bool IsItemsDeleted = await _itemService.DeleteAllItemsAsync();
