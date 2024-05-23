@@ -1,4 +1,4 @@
-﻿namespace InventoryMaster.Entities
+﻿namespace DomainLayer.Entities
 {
     public class TypeOfItems // Класс для типов предмета
     {

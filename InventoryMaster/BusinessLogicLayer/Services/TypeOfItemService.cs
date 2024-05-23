@@ -1,8 +1,9 @@
-﻿using InventoryMaster.Entities;
-using InventoryMaster.Interfaces;
+﻿using DomainLayer.Entities;
+using BusinessLogicLayer.Interfaces;
+using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
-
-namespace InventoryMaster.Services
+using DataAccessLayer.Data;
+namespace BusinessLogicLayer.Services
 {
     public class TypeOfItemService : ITypeOfItemService
     {
@@ -47,6 +48,7 @@ namespace InventoryMaster.Services
             }
             
         }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2254:Шаблон должен быть статическим выражением", Justification = "<Ожидание>")]
         public async Task<TypeOfItems?> DeleteTypeByIdAsync(int typeId) // Удаление предмета по айди
         {
             try
@@ -65,11 +67,12 @@ namespace InventoryMaster.Services
             }
             catch (Exception ex)
             {
-               _logger.LogError($"Ошибка при удалении типа предмета:", ex.Message);
+                _logger.LogError(message: ex.Message);
                 return null;
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2254:Шаблон должен быть статическим выражением", Justification = "<Ожидание>")]
         public async Task<TypeOfItems?> UpdateTypeAsync(int id, string? UpdTypeName) //Изменение типа предмета по айди
         {
             try
@@ -93,7 +96,7 @@ namespace InventoryMaster.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError("Ошибка при обновлении типа:",ex.Message);
+                _logger.LogError(ex.Message);
                 return null;
             }
         }

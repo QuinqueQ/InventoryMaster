@@ -1,7 +1,7 @@
-﻿using BusinessLogic.Interfaces;
+﻿using BusinessLogicLayer.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
-namespace InventoryMaster.Controllers
+namespace PresentationLayer.Controllers
 {
     [ApiController]
     [Route("api/type-of-items")]

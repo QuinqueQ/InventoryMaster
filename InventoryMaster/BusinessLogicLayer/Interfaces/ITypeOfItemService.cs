@@ -1,6 +1,6 @@
-﻿using InventoryMaster.Entities;
+﻿using DomainLayer.Entities;
 
-namespace InventoryMaster.Interfaces
+namespace BusinessLogicLayer.Interfaces
 {
     public interface ITypeOfItemService
     {

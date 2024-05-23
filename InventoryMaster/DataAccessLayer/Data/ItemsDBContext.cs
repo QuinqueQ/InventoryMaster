@@ -1,8 +1,7 @@
-﻿using InventoryMaster.Entities;
-using InventoryMaster.Model;
+﻿using DomainLayer.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace InventoryMaster
+namespace DataAccessLayer.Data
 {
     public class ItemsDBContext : DbContext
     {

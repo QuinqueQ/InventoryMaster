@@ -1,10 +1,11 @@
-﻿using InventoryMaster.Dtos;
-using InventoryMaster.Entities;
-using InventoryMaster.Interfaces;
-using InventoryMaster.Model;
+﻿using DomainLayer.Dtos;
+using DomainLayer.Entities;
+using BusinessLogicLayer.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-namespace InventoryMaster.Services
+using Microsoft.Extensions.Logging;
+using DataAccessLayer.Data;
+namespace BusinessLogicLayer.Services
 {
     public class ItemService : IItemService //Сервис для добавления предмета в базу данных
     {
@@ -39,9 +40,9 @@ namespace InventoryMaster.Services
                 _logger.LogInformation($"Предмет успешно добавлен в базу данных!");
                 return newItem;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                _logger.LogError($"Ошибка при добавлении предмета в базу данных: {ex.Message}");
+                _logger.LogError("Ошибка при добавлении предмета в базу данных:");
                 return newItem;
             }
         }
@@ -83,6 +84,7 @@ namespace InventoryMaster.Services
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2017:Несоответствие количества параметров", Justification = "<Ожидание>")]
         public async Task<List<Item>?> GetItemsAsync()
         {
             try
@@ -144,6 +146,7 @@ namespace InventoryMaster.Services
 
 
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2017:Несоответствие количества параметров", Justification = "<Ожидание>")]
         public async Task<Item?> PostItemAsync(ItemDto itemDto)  // Добавление нового предмета в базу данных
         {
             try
@@ -170,6 +173,7 @@ namespace InventoryMaster.Services
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2017:Несоответствие количества параметров", Justification = "<Ожидание>")]
         public async Task<bool> DeleteAllItemsAsync() // Удаления всех предметов из базы данных
         {
             try

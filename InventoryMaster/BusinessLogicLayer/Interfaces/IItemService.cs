@@ -1,9 +1,8 @@
-﻿using InventoryMaster.Dtos;
-using InventoryMaster.Entities;
-using InventoryMaster.Model;
+﻿using DomainLayer.Dtos;
+using DomainLayer.Entities;
 using Microsoft.AspNetCore.Mvc;
 
-namespace InventoryMaster.Interfaces
+namespace BusinessLogicLayer.Interfaces
 {
     public interface IItemService // Интерфейс для сервиса предметов
     {

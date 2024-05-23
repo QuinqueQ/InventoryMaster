@@ -1,10 +1,11 @@
-using InventoryMaster.Interfaces;
-using InventoryMaster.Services;
+using BusinessLogicLayer.Interfaces;
+using BusinessLogicLayer.Services;
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
-using System.Text.Json.Serialization;
+using DataAccessLayer.Data;
 
-namespace InventoryMaster
+namespace PresentationLayer
 {
     public class Program
     {

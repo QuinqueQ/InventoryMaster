@@ -1,6 +1,4 @@
-﻿using InventoryMaster.Entities;
-
-namespace InventoryMaster.Model
+﻿namespace DomainLayer.Entities
 {
     public class Item //Класс наших предметов
     {

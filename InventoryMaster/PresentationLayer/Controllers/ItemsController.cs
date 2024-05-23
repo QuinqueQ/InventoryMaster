@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using BusinessLogic.Interfaces;
-using BusinessLogic.Dtos;
-using BusinessLogic.Entities;
+using BusinessLogicLayer.Interfaces;
+using DomainLayer.Dtos;
+using DomainLayer.Entities;
 
-namespace InventoryMaster.Controllers
+namespace PresentationLayer.Controllers
 {
     [ApiController]
     [Route("api/items")]

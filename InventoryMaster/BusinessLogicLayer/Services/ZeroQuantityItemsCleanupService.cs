@@ -1,6 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
-
-namespace InventoryMaster.Services
+﻿using DataAccessLayer.Data;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+namespace BusinessLogicLayer.Services
 {
     public class ZeroQuantityItemsCleanupService : BackgroundService // Сервис проверяющий нет ли в базе предеметов с количеством 0
     {
@@ -28,7 +31,7 @@ namespace InventoryMaster.Services
                     {
                         dbContext.Items.RemoveRange(zeroQuantityItems);
                         await dbContext.SaveChangesAsync(stoppingToken);
-                        _logger.LogInformation ($"{zeroQuantityItems.Count} Предметы с нулевым количеством были удалены из базы данных.");
+                        _logger.LogInformation ($"Предметы с нулевым количеством были удалены из базы данных.");
                     }
                     else
                     {
